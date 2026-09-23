@@ -121,9 +121,12 @@ export class StrataStack {
     return this.strata.map((stratum) => stratum.body)
   }
 
+  /** On narrow screens a plate's callout starts at its solid edge, so a plate that fades out past the callout column never sends its leader back across the labels. */
+  compactAnchors = false
+
   anchor(id: string, target: Vector3): Vector3 | null {
     const stratum = this.byId.get(id)
-    return stratum ? stratum.anchor(target) : null
+    return stratum ? stratum.anchor(target, this.compactAnchors) : null
   }
 
   applyPalette(ground: Color, line: Color, edgeOpacity: number, hatchOpacity: number): void {
@@ -169,6 +172,11 @@ export class StrataStack {
   isLost(id: string): boolean {
     const stratum = this.byId.get(id)
     return Boolean(stratum && stratum.device.volatile && !this.powerOn)
+  }
+
+  /** Passes the current on-screen scale to every plate so cut-face hatching only draws where its pitch can be resolved. */
+  setPixelScale(pixelsPerUnit: number): void {
+    for (const stratum of this.strata) stratum.pixelScale = pixelsPerUnit
   }
 
   pulse(id: string, strength = 1): void {

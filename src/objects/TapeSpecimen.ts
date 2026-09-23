@@ -10,7 +10,6 @@ import {
   Vector3,
   type Color,
 } from 'three'
-import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js'
 import { clamp, easeInOutCubic } from '../utils/math'
 import { createKit, Specimen, tintKit, type SpecimenKit } from './Specimen'
 
@@ -33,14 +32,10 @@ export class TapeSpecimen extends Specimen {
   private phase: TapePhase | 'rest' = 'rest'
   private phaseTime = 0
   private reelAngle = 0
+  private readonly cartridgeTop = new Vector3()
 
   constructor(accent: Color) {
     super()
-    this.dock.set(-10.3, -0.2, 0)
-    const floor = new Mesh(new RoundedBoxGeometry(19, 0.4, 9.6, 3, 0.24), this.kit.aluminum)
-    floor.position.set(-0.8, -0.2, 0)
-    floor.receiveShadow = true
-    floor.castShadow = true
     const rack = new Group()
     const upright = new BoxGeometry(0.22, 5.2, 3)
     for (const x of [-9.2, -3.4]) {
@@ -54,8 +49,8 @@ export class TapeSpecimen extends Specimen {
       shelf.position.set(-6.3, y - 0.1, 0)
       rack.add(shelf)
     }
-    const cartridgeGeometry = new RoundedBoxGeometry(0.46, 2.0, 2.2, 2, 0.06)
-    const shelfCartridge = new MeshStandardMaterial({ color: 0x59636e, metalness: 0.25, roughness: 0.5 })
+    const cartridgeGeometry = new BoxGeometry(0.46, 2.0, 2.2)
+    const shelfCartridge = new MeshStandardMaterial({ color: 0x98a3ae, metalness: 0.3, roughness: 0.4 })
     for (const y of [1.95, 4.15]) {
       for (let i = 0; i < 8; i += 1) {
         const x = -8.7 + i * 0.66
@@ -66,14 +61,14 @@ export class TapeSpecimen extends Specimen {
         rack.add(stored)
       }
     }
-    const drive = new Mesh(new RoundedBoxGeometry(4.8, 3.1, 4.6, 3, 0.2), this.kit.anodized)
+    const drive = new Mesh(new BoxGeometry(4.8, 3.1, 4.6), this.kit.anodized)
     drive.position.set(3.1, 1.55, 0)
     drive.castShadow = true
     const door = new Mesh(new BoxGeometry(0.06, 2.3, 2.5), this.inkMaterial)
     door.position.set(0.68, 1.55, 0)
     const window = new Mesh(new BoxGeometry(2.8, 0.05, 2.8), new MeshStandardMaterial({ color: 0x9fb2c2, metalness: 0.1, roughness: 0.05, transparent: true, opacity: 0.45 }))
     window.position.set(3.4, 3.12, 0)
-    this.reel = new Mesh(new CylinderGeometry(1.1, 1.1, 0.26, 40), new MeshStandardMaterial({ color: 0x3b3f44, metalness: 0.4, roughness: 0.45 }))
+    this.reel = new Mesh(new CylinderGeometry(1.1, 1.1, 0.26, 40), new MeshStandardMaterial({ color: 0x77828d, metalness: 0.3, roughness: 0.4 }))
     this.reel.position.set(3.4, 2.92, 0)
     const reelMark = new Mesh(new BoxGeometry(1.0, 0.03, 0.14), new MeshBasicMaterial({ color: accent }))
     reelMark.position.set(0.5, 0.14, 0)
@@ -88,15 +83,17 @@ export class TapeSpecimen extends Specimen {
 
     this.stream = new InstancedMesh(new BoxGeometry(0.22, 0.22, 0.22), new MeshBasicMaterial({ color: accent }), 18)
     this.stream.frustumCulled = false
-    this.root.add(floor, rack, drive, door, window, this.reel, this.cartridge, this.stream)
+    this.root.add(rack, drive, door, window, this.reel, this.cartridge, this.stream)
+    this.detailSheet(this.kit, { minX: -10.2, maxX: 9.6, minZ: -2.6, maxZ: 5.8, y: -0.01, titleWidth: 7.2 })
+    this.inkEdges(this.kit)
 
-    this.label('library', 'Tape library', new Vector3(-6.3, 5.7, 0))
-    this.label('drive', 'Tape drive', new Vector3(3.1, 3.9, -1.6))
-    this.label('mount', 'Robotic mount: 4 to 10 s', new Vector3(-2.6, 5.1, 0), () => this.phase === 'mount', 'strong')
-    this.label('load', 'Drive load: about 11 s', new Vector3(0.6, 4.1, 1.4), () => this.phase === 'load', 'strong')
-    this.label('locate', 'Locate the file: 10 to 100 s', new Vector3(3.4, 4.1, 1.2), () => this.phase === 'locate', 'strong')
-    this.label('stream', 'Streaming: 400 MB/s native, 1,000 MB/s compressed', new Vector3(6.8, 2.6, 0), () => this.phase === 'stream' && this.mode !== 'stream', 'strong')
-    this.label('stream-why', 'Once positioned: 360 to 400 MB/s, vs. 160 to 220 MB/s for most hard disks', new Vector3(6.8, 2.6, 0), () => this.mode === 'stream', 'strong')
+    this.label('library', 'Tape library', new Vector3(-9.2, 5.2, 0))
+    this.label('drive', 'Tape drive', new Vector3(3.1, 0.02, 2.3), () => true, 'plain', 'below', 26)
+    this.label('mount', 'Robotic mount: 4 to 10 s', this.cartridgeTop, () => this.phase === 'mount', 'strong')
+    this.label('load', 'Drive load: about 11 s', new Vector3(0.68, 2.7, 0), () => this.phase === 'load', 'strong')
+    this.label('locate', 'Locate the file: 10 to 100 s', new Vector3(3.4, 3.05, 0), () => this.phase === 'locate', 'strong')
+    this.label('stream', 'Streaming: 400 MB/s native, 1,000 MB/s compressed', new Vector3(5.5, 1.55, 0), () => this.phase === 'stream' && this.mode !== 'stream', 'strong')
+    this.label('stream-why', 'Once positioned: 360 to 400 MB/s, vs. 160 to 220 MB/s for most hard disks', new Vector3(5.5, 1.55, 0), () => this.mode === 'stream', 'strong')
   }
 
   applyPalette(ink: Color, dark: boolean): void {
@@ -144,6 +141,7 @@ export class TapeSpecimen extends Specimen {
       this.setPhase('mount')
     }
     this.cartridge.visible = phase !== 'locate' && phase !== 'stream'
+    this.cartridgeTop.set(this.cartridge.position.x, this.cartridge.position.y + 1, this.cartridge.position.z)
     this.reel.rotation.y = -this.reelAngle
     const streaming = phase === 'stream'
     for (let i = 0; i < 18; i += 1) {

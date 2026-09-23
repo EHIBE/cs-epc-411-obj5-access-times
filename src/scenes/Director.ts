@@ -108,6 +108,17 @@ export class Director {
     if (this.cue) this.parts.rig.fly(SHOTS[this.cue.shot], this.parts.reducedMotion() ? 0.01 : 1.2)
   }
 
+  /** On a phone the detail sheet leaves a thin strip of stage, so the camera closes in on the selected stratum there; closing the sheet returns to the step's shot. */
+  frameDevice(id: string | null): void {
+    const stratum = id ? this.parts.stack.get(id) : undefined
+    if (!stratum) {
+      this.resetView()
+      return
+    }
+    const y = stratum.baseY
+    this.parts.rig.fly({ position: [8, y + 6, 20], target: [-1, y, 0] }, this.parts.reducedMotion() ? 0.01 : 1.1)
+  }
+
   private applyCue(state: AppState, camera: 'fly' | 'jump' | 'keep'): void {
     const { slides, rig, stack, annotations, specimens, labels, store, hooks } = this.parts
     const slide = slides[state.slide]

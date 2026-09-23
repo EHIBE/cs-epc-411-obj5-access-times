@@ -2,7 +2,7 @@ import { Vector3, type Camera } from 'three'
 import { clamp } from '../utils/math'
 import { svg } from './dom'
 
-export type Placement = 'right' | 'left' | 'center' | 'above' | 'aboveRight' | 'rotated' | 'rotatedRight'
+export type Placement = 'right' | 'left' | 'center' | 'above' | 'below' | 'aboveRight' | 'rotated' | 'rotatedRight'
 
 export interface LabelOptions {
   id: string
@@ -14,6 +14,9 @@ export interface LabelOptions {
   tint?: string
   shoulder?: (element: HTMLElement) => number
   group?: string
+  occluder?: boolean
+  clampX?: boolean
+  yieldTo?: string
   visible?: boolean
 }
 
@@ -27,6 +30,9 @@ interface LabelItem {
   shoulder: ((element: HTMLElement) => number) | null
   shoulderY: number
   group: string | null
+  occluder: boolean
+  clampX: boolean
+  yieldTo: string | null
   visible: boolean
   width: number
   height: number
@@ -53,15 +59,26 @@ interface ColumnState {
 const GAP = 4
 const KNEE = 18
 
-/** Projects 3D anchors to DOM labels every frame, keeps same-group labels from overlapping, sets callouts in one aligned column, and draws one-weight leaders that never cross a label. */
+const rotatedBox = (item: LabelItem): { x0: number; y0: number; x1: number; y1: number } => {
+  if (item.placement !== 'rotated' && item.placement !== 'rotatedRight') {
+    return { x0: item.x, y0: item.y, x1: item.x + item.width, y1: item.y + item.height }
+  }
+  const cx = item.x + item.width / 2
+  const cy = item.y + item.height / 2
+  return { x0: cx - item.height / 2, y0: cy - item.width / 2, x1: cx + item.height / 2, y1: cy + item.width / 2 }
+}
+
+/** Projects 3D anchors to DOM labels every frame. Labels whose anchor leaves the visible frame are hidden rather than squeezed in, dense scales are thinned rather than shifted off their ticks, callouts sit in one aligned column, and every leader is drawn at one hairline weight without crossing a label. */
 export class LabelLayer {
   private readonly items = new Map<string, LabelItem>()
   private readonly columns = new Map<string, ColumnState>()
+  private readonly thinned = new Set<string>()
   private readonly layer: HTMLElement
   private readonly leaders: SVGSVGElement
   private readonly point = new Vector3()
   private top = 0
   private bottom = 10000
+  private left = 0
   private right = 10000
   private exclusion: Exclusion | null = null
 
@@ -89,6 +106,9 @@ export class LabelLayer {
       shoulder: options.shoulder ?? null,
       shoulderY: 0,
       group: options.group ?? null,
+      occluder: options.occluder ?? false,
+      clampX: options.clampX ?? false,
+      yieldTo: options.yieldTo ?? null,
       visible: options.visible ?? false,
       width: 0,
       height: 0,
@@ -105,6 +125,11 @@ export class LabelLayer {
   /** Sets every label of a group in one column just right of the group's outermost anchor. */
   alignColumn(group: string, offset: number): void {
     this.columns.set(group, { offset, x: 0, seeded: false })
+  }
+
+  /** Marks a group as a scale: when its labels would collide, alternate ones are dropped instead of being pushed off their ticks. */
+  thinGroup(group: string): void {
+    this.thinned.add(group)
   }
 
   has(id: string): boolean {
@@ -128,9 +153,10 @@ export class LabelLayer {
     })
   }
 
-  setBounds(top: number, bottom: number, right: number): void {
+  setBounds(top: number, bottom: number, left: number, right: number): void {
     this.top = top
     this.bottom = bottom
+    this.left = left
     this.right = right
   }
 
@@ -158,7 +184,7 @@ export class LabelLayer {
       if (anchor.z > 1 || anchor.z < -1) continue
       item.ax = ((anchor.x + 1) / 2) * width
       item.ay = ((1 - anchor.y) / 2) * height
-      if (item.ax < -200 || item.ax > width + 200 || item.ay < -100 || item.ay > height + 100) continue
+      if (item.ay < this.top - 2 || item.ay > this.bottom + 2 || item.ax < this.left - 2 || item.ax > this.right + 2) continue
       item.shown = true
       this.place(item)
       if (item.group) {
@@ -172,8 +198,17 @@ export class LabelLayer {
     for (const [group, list] of groups) {
       const column = this.columns.get(group)
       if (column) this.alignToColumn(list, column)
-      this.resolve(list)
+      if (this.thinned.has(group)) this.thin(list)
+      else this.resolve(list)
     }
+    for (const item of this.items.values()) {
+      if (!item.shown || (item.group && this.columns.has(item.group))) continue
+      if (item.clampX) item.x = clamp(item.x, this.left, Math.max(this.left, this.right - item.width))
+      const box = rotatedBox(item)
+      if (box.x0 < this.left || box.x1 > this.right || box.y0 < this.top - 1 || box.y1 > this.bottom + 1) item.shown = false
+    }
+    this.clearOccluded()
+    this.yieldToGroups()
     for (const item of this.items.values()) this.write(item)
   }
 
@@ -211,6 +246,10 @@ export class LabelLayer {
         item.x = ax - w / 2
         item.y = ay - offset - h
         break
+      case 'below':
+        item.x = ax - w / 2
+        item.y = ay + offset
+        break
       case 'aboveRight':
         item.x = ax + offset
         item.y = ay - h - 3
@@ -226,6 +265,21 @@ export class LabelLayer {
       default:
         item.x = ax - w / 2
         item.y = ay - h / 2
+    }
+  }
+
+  /** Keeps a scale honest: each label stays on its own tick, and only a label whose lettering would touch the last kept label is dropped; line boxes may overlap because scale labels carry no fill. */
+  private thin(list: LabelItem[]): void {
+    list.sort((a, b) => a.ay - b.ay)
+    let lastBottom = Number.NEGATIVE_INFINITY
+    for (const item of list) {
+      const glyph = item.height * 0.74
+      const top = item.y + (item.height - glyph) / 2
+      if (top < lastBottom + 1) {
+        item.shown = false
+        continue
+      }
+      lastBottom = top + glyph
     }
   }
 
@@ -262,6 +316,35 @@ export class LabelLayer {
     }
   }
 
+  /** A low-priority label, such as the column note, steps aside for the group it yields to: it hides rather than print over a callout. */
+  private yieldToGroups(): void {
+    for (const item of this.items.values()) {
+      if (!item.shown || !item.yieldTo) continue
+      const a = rotatedBox(item)
+      for (const other of this.items.values()) {
+        if (!other.shown || other.group !== item.yieldTo) continue
+        const b = rotatedBox(other)
+        if (b.x0 < a.x1 + 4 && b.x1 > a.x0 - 4 && b.y0 < a.y1 + 4 && b.y1 > a.y0 - 4) {
+          item.shown = false
+          break
+        }
+      }
+    }
+  }
+
+  /** A label marked as an occluder, such as the probe readout, clears any other label it passes over so no fragments peek out around it. */
+  private clearOccluded(): void {
+    for (const occluder of this.items.values()) {
+      if (!occluder.shown || !occluder.occluder) continue
+      const a = rotatedBox(occluder)
+      for (const item of this.items.values()) {
+        if (item === occluder || !item.shown || item.occluder) continue
+        const b = rotatedBox(item)
+        if (b.x0 < a.x1 + 2 && b.x1 > a.x0 - 2 && b.y0 < a.y1 + 2 && b.y1 > a.y0 - 2) item.shown = false
+      }
+    }
+  }
+
   /** The last projected screen height of a label's anchor, or null when it is not on screen. */
   projectedY(id: string): number | null {
     const item = this.items.get(id)
@@ -283,16 +366,24 @@ export class LabelLayer {
     item.element.classList.remove('is-hidden')
     const rotate = item.placement === 'rotated' || item.placement === 'rotatedRight' ? ' rotate(-90deg)' : ''
     item.element.style.transform = `translate3d(${item.x.toFixed(1)}px, ${item.y.toFixed(1)}px, 0)${rotate}`
-    if (item.path) {
+    if (!item.path) return
+    if (item.placement === 'above' || item.placement === 'below') {
+      const end = item.placement === 'above' ? item.y + item.height : item.y
+      item.path.setAttribute('d', `M${item.ax.toFixed(1)} ${item.ay.toFixed(1)} V${end.toFixed(1)}`)
+    } else {
       const toRight = item.placement !== 'left'
       const endY = item.y + item.shoulderY
       const edge = toRight ? item.x : item.x + item.width
+      if (toRight ? item.ax > edge - 6 : item.ax < edge + 6) {
+        item.path.style.opacity = '0'
+        return
+      }
       const knee = toRight ? Math.max(item.ax + 4, edge - KNEE) : Math.min(item.ax - 4, edge + KNEE)
       item.path.setAttribute(
         'd',
         `M${item.ax.toFixed(1)} ${item.ay.toFixed(1)} H${knee.toFixed(1)} L${edge.toFixed(1)} ${endY.toFixed(1)}`,
       )
-      item.path.style.opacity = item.element.dataset.state === 'dim' ? '0.35' : '1'
     }
+    item.path.style.opacity = item.element.dataset.state === 'dim' ? '0.35' : '1'
   }
 }

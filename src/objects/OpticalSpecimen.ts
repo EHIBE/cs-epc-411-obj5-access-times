@@ -13,7 +13,6 @@ import {
   SphereGeometry,
   Vector3,
 } from 'three'
-import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js'
 import { clamp, easeInOutCubic, lerp } from '../utils/math'
 import { createKit, Specimen, tintKit, type SpecimenKit } from './Specimen'
 
@@ -50,14 +49,9 @@ export class OpticalSpecimen extends Specimen {
 
   constructor(opticalColor: Color, diskColor: Color) {
     super()
-    this.dock.set(-9.5, -0.3, 0)
-    const base = new Mesh(new RoundedBoxGeometry(19, 0.4, 8.6, 3, 0.24), this.kit.aluminum)
-    base.position.set(0, -0.3, 0)
-    base.receiveShadow = true
-    base.castShadow = true
     const disc = new Mesh(
       new CylinderGeometry(3.05, 3.05, 0.08, 96),
-      new MeshStandardMaterial({ color: opticalColor.clone().lerp(new Color(0xe8edf1), 0.72), metalness: 0.85, roughness: 0.16 }),
+      new MeshStandardMaterial({ color: opticalColor.clone().lerp(new Color(0xe8edf1), 0.62), metalness: 0.3, roughness: 0.4 }),
     )
     disc.position.set(DISC_X, 0.04, 0)
     disc.castShadow = true
@@ -83,12 +77,17 @@ export class OpticalSpecimen extends Specimen {
       const ring = new Mesh(new RingGeometry(radius - 0.014, radius + 0.014, 128), this.lineInk)
       ring.rotation.x = -Math.PI / 2
       ring.position.set(PLATTER_X, 0.105, 0)
+      ring.userData.noEdges = true
       this.root.add(ring)
     }
     this.head = new Mesh(new BoxGeometry(0.3, 0.2, 0.4), new MeshBasicMaterial({ color: diskColor }))
-    this.root.add(base, disc, hole, spiral, this.laser, this.beam, platter, this.head)
-    this.label('optical', 'Optical disc: one spiral track, center outward', new Vector3(DISC_X, 0.4, 3.9), () => true, 'strong')
-    this.label('disk', 'Hard disk: concentric tracks', new Vector3(PLATTER_X, 0.4, 3.9), () => true, 'strong')
+    this.laser.userData.noEdges = true
+    this.beam.userData.noEdges = true
+    this.root.add(disc, hole, spiral, this.laser, this.beam, platter, this.head)
+    this.detailSheet(this.kit, { minX: -8.4, maxX: 8.4, minZ: -4, maxZ: 6.2, y: -0.005, titleWidth: 9.8 })
+    this.inkEdges(this.kit)
+    this.label('optical', 'Optical disc: one spiral track, center outward', new Vector3(DISC_X, 0.08, 2.9), () => true, 'strong')
+    this.label('disk', 'Hard disk: concentric tracks', new Vector3(PLATTER_X, 0.1, 2.9), () => true, 'strong')
     this.label('jump', 'The laser jumps, then follows the spiral to the data', this.laserLabel, () => this.phase !== 'follow')
   }
 

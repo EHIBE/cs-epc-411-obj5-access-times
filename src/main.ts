@@ -221,6 +221,7 @@ function start(): void {
         if (store.get().webgl) store.set({ sweeping: true })
         else toast.show('The probe runs in the 3D view, which is unavailable here.', 'error')
       },
+      stopSweep: () => store.set({ sweeping: false }),
       openTable: () => table.open(),
     },
   }
@@ -350,8 +351,8 @@ function start(): void {
     }
     const rem = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
     const bias = !mobile && stage.labels.reservesColumn ? Math.min(19 * rem, width * 0.22) : 0
-    stage.rig.setFrame(insets, immediate, bias)
-    stage.layer.setBounds(topbar + 8, height - insets.bottom - 8, width - insets.right - 8)
+    stage.rig.setFrame(insets, immediate, bias, mobile)
+    stage.layer.setBounds(topbar + 8, height - insets.bottom - 8, insets.left + 8, width - insets.right - 8)
   }
 
   const resize = (): void => {
@@ -367,10 +368,10 @@ function start(): void {
   const renderUi = (state: AppState, previous: AppState | null): void => {
     const first = previous === null
     if (first || changed(state, previous, 'slide', 'step')) {
-      deck.show(state.slide, state.step)
-      rail.show(state.slide, state.step)
       const slide = data.slides[state.slide]
       leftPanel.dataset.wide = String(slide?.figure === 'table')
+      deck.show(state.slide, state.step)
+      rail.show(state.slide, state.step)
       const step = slide?.steps[state.step]
       if (slide && step) {
         window.history.replaceState(null, '', `#${slide.number}.${state.step + 1}`)
@@ -383,6 +384,7 @@ function start(): void {
       if (device) spec.show(device, !first)
       else spec.hide()
       document.body.dataset.spec = String(Boolean(device))
+      if (!first && window.innerWidth < 768) stage?.director.frameDevice(state.selected)
     }
     if (first || changed(state, previous, 'human')) {
       topBar.setHuman(state.human)
@@ -442,6 +444,7 @@ function start(): void {
     window.requestAnimationFrame(resize)
   })
   window.addEventListener('resize', rafThrottle(resize))
+  window.addEventListener('deckfit', () => window.requestAnimationFrame(() => updateFrame()))
   window.addEventListener('hashchange', () => {
     const position = positionFromHash(data)
     go(position.slide, position.step)
@@ -552,6 +555,7 @@ function start(): void {
     toast.show('Something in the 3D view hit an error. The slides and details still work; reloading usually clears it.', 'error', 6000)
   }
   window.addEventListener('error', (event) => {
+    if (String(event.message).startsWith('ResizeObserver loop')) return
     event.preventDefault()
     console.error('[uncaught]', event.message)
     report()
@@ -594,6 +598,7 @@ function start(): void {
       stage.manager.instrument.position.y = reduced ? 0 : FLOAT_AMPLITUDE * Math.sin((time * Math.PI * 2) / FLOAT_PERIOD)
       stage.picker.update()
       stage.rig.update(dt)
+      stage.stack.setPixelScale(stage.rig.pixelsPerUnit(window.innerHeight))
       stage.stack.update(dt, time)
       stage.column.update(time)
       stage.sparks.update(dt)

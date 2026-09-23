@@ -429,10 +429,16 @@
   font-weight: 760;
 }
 
-.callout[data-lost='true'] .callout__value {
+.callout__value s {
   color: var(--ink-3);
-  text-decoration: line-through;
+  font-weight: 520;
   text-decoration-thickness: 1px;
+}
+
+.callout__lost {
+  font-stretch: 100%;
+  font-weight: 720;
+  color: var(--ink);
 }
 
 .callout[data-compact='true'] .callout__value {
@@ -469,6 +475,8 @@
 .tick-label--human {
   color: var(--ink);
   font-weight: 700;
+  background: var(--halo);
+  padding: 0.12em 0.45em;
 }
 
 .tick-label--epoch {
@@ -508,6 +516,7 @@
 }
 
 .tick-label--specimen {
+  border-bottom: 1px solid var(--ink-2);
   font-stretch: 90%;
   font-weight: 620;
   font-size: 0.84rem;
@@ -520,7 +529,18 @@
   font-weight: 760;
 }
 
+.tick-label--detail small {
+  display: block;
+  margin-top: 0.1rem;
+  font-stretch: 92%;
+  font-weight: 500;
+  font-size: 0.78rem;
+  color: var(--ink-2);
+}
+
 .tick-label--detail {
+  text-align: center;
+  line-height: 1.25;
   font-stretch: 104%;
   font-weight: 720;
   font-size: 0.9rem;
@@ -586,20 +606,105 @@
 }
 
 .deck-title {
-  font-size: clamp(1.75rem, 1.75vw + 0.8rem, 2.8rem);
-  transition: font-size 0.45s var(--ease-out);
+  font-size: min(clamp(1.75rem, 1.75vw + 0.8rem, 2.8rem), 5.4dvh);
 }
 
 .deck-header[data-opening='true'] .deck-title {
-  font-size: clamp(2.1rem, 2.7vw + 0.6rem, 3.6rem);
+  font-size: min(clamp(2.1rem, 2.7vw + 0.6rem, 3.6rem), 5.9dvh);
 }
 
 .deck-header[data-later='true'] .deck-title {
-  font-size: clamp(1.45rem, 0.9vw + 0.95rem, 2.05rem);
+  font-size: min(clamp(1.45rem, 0.9vw + 0.95rem, 2.05rem), 4.2dvh);
 }
 
 .fact {
   position: relative;
+}
+
+.fact__text {
+  max-width: 60ch;
+  font-size: clamp(1rem, 0.6vw + 0.62rem, 1.3rem);
+  line-height: 1.42;
+}
+
+.fact[data-state='past'] .fact__lead {
+  font-size: 0.9rem;
+  font-weight: 620;
+}
+
+#deck[data-tight='true'] .deck-header {
+  margin-bottom: 0.75rem;
+}
+
+#deck[data-tight='true'] .deck-title {
+  font-size: min(clamp(1.35rem, 0.8vw + 0.9rem, 1.9rem), 3.9dvh);
+}
+
+#deck[data-tight='true'] .fact__text {
+  font-size: 0.96rem;
+  line-height: 1.36;
+}
+
+#deck[data-tight='true'] .branch-drawing {
+  max-height: 7.5rem;
+}
+
+#deck[data-tight='true'] .queue-row {
+  grid-template-columns: 9.5rem 1fr;
+}
+
+#deck[data-tight='true'] .figure-block {
+  margin-top: 0.6rem;
+}
+
+#deck[data-tight='true'] .data-table th,
+#deck[data-tight='true'] .data-table td {
+  padding-top: 0.32rem;
+  padding-bottom: 0.32rem;
+}
+
+#deck[data-tight='true'] .deck-footer {
+  margin-top: 0.75rem;
+  padding-top: 0.6rem;
+}
+
+#deck[data-tight='true'] ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.9rem;
+  row-gap: 0.2rem;
+}
+
+#deck[data-tight='true'] .fact[data-state='past'] .fact__lead {
+  font-size: 0.84rem;
+}
+
+#deck[data-tight='true'] .fact[data-state='past'] .fact__jump {
+  gap: 0.4rem;
+}
+
+#deck[data-tight='true'] .fact[data-state='current'] {
+  flex-basis: 100%;
+  padding-block: 0.15rem;
+}
+
+.table-window {
+  scroll-padding-top: 2.6rem;
+}
+
+body[data-tight='true'] #legend {
+  margin-top: 0.4rem;
+  padding-top: 0.5rem;
+}
+
+body[data-tight='true'] .legend-tiers {
+  margin-top: 0.3rem;
+  line-height: 1.2;
+}
+
+body[data-tight='true'] #left:not([data-wide='true']) {
+  width: max(var(--deck-w), min(42vw, 40rem));
 }
 
 .fact__lead {
@@ -617,6 +722,7 @@
 }
 
 .fact[data-state='current'] {
+  padding-block: 0.3rem;
   animation: fact-in 0.46s var(--ease-out) both;
 }
 
@@ -693,26 +799,26 @@
 }
 
 .spec-heading {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  column-gap: 0.45rem;
+  display: block;
   padding-bottom: 0.55rem;
   border-bottom: 1px solid color-mix(in oklab, var(--tint, var(--ink)) 70%, var(--ink));
 }
 
 .spec-heading__rank {
+  margin-right: 0.4em;
   font-stretch: 90%;
   font-weight: 600;
   font-size: 0.55em;
   letter-spacing: 0;
+  vertical-align: 0.35em;
   color: var(--ink-3);
 }
 
 .spec-heading__icon {
   display: inline-flex;
-  align-self: center;
+  margin-right: 0.35em;
   font-size: 0.7em;
+  vertical-align: 0.05em;
   color: var(--ink-2);
 }
 
@@ -821,13 +927,12 @@
   min-width: 0;
   height: 100%;
   display: flex;
-  flex-wrap: wrap;
-  align-content: flex-end;
-  align-items: baseline;
+  align-items: flex-end;
   column-gap: 0.35rem;
-  row-gap: 0;
-  padding: 0 0.35rem 0.4rem;
+  row-gap: 0.05rem;
+  padding: 0 0.35rem 0.45rem;
   overflow: hidden;
+  white-space: nowrap;
   border-left: 1px solid var(--rule);
   color: var(--ink-3);
   text-align: left;
@@ -1111,7 +1216,7 @@
 @media (max-width: 767px) {
   :root {
     --topbar-h: 3.25rem;
-    --rail-h: 4.4rem;
+    --rail-h: 3.95rem;
     --deck-w: 100vw;
     --spec-w: 100vw;
   }
@@ -1231,9 +1336,47 @@
   padding: 0.75rem 0.9rem;
 }
 
-body[data-spec='true'] #hint {
+body[data-spec='true'] #hint,
+body:has(dialog[open]) #hint {
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
+}
+
+.rail-seg[data-fit='stack'],
+.rail-seg[data-fit='narrow'],
+.rail-seg[data-fit='short'] {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 0 0.25rem 0.4rem;
+}
+
+.rail-seg[data-fit='stack'] .rail-seg__title {
+  font-stretch: 80%;
+}
+
+.rail-seg[data-fit='narrow'] .rail-seg__title,
+.rail-seg[data-fit='short'] .rail-seg__title {
+  font-stretch: 64%;
+}
+
+.rail-seg[data-fit='number'] .rail-seg__title {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .deck-title {
+    font-size: clamp(1.35rem, 5.2vw, 1.75rem);
+  }
+
+  .deck-header[data-opening='true'] .deck-title {
+    font-size: clamp(1.55rem, 6.6vw, 2.1rem);
+  }
+
+  .deck-header[data-later='true'] .deck-title {
+    font-size: 1.3rem;
+  }
 }
 
 #rail {
@@ -1383,7 +1526,7 @@ body[data-deck='hidden'] #caption {
     right: 0;
     bottom: var(--rail-h);
     width: auto;
-    max-height: 50dvh;
+    max-height: 42dvh;
     padding: 0.9rem 1rem 0.5rem;
     border-right: 0;
     border-top: 1px solid var(--rule-strong);
@@ -1411,7 +1554,7 @@ body[data-deck='hidden'] #caption {
     top: auto;
     bottom: var(--rail-h);
     width: auto;
-    max-height: 72dvh;
+    max-height: 62dvh;
     border-width: 1px 0 0;
   }
 
@@ -1435,7 +1578,7 @@ body[data-deck='hidden'] #caption {
 
   .rail-clock {
     flex: none;
-    height: 2.35rem;
+    height: 2.1rem;
     justify-content: flex-end;
     padding: 0 0.75rem;
     border-left: 0;

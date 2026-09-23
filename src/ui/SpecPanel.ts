@@ -15,10 +15,10 @@ export interface SpecCallbacks {
 
 /** Notes on how the model draws a device, stated so nobody mistakes a drawing choice for a figure. */
 const MODEL_NOTES: Record<string, string> = {
-  register: 'Not sold separately, so the depth that encodes cost is drawn unrated (dashed outline).',
+  register: 'Not sold separately, so the depth that encodes cost is drawn unrated (dashed inner line).',
   optane:
     'No single published figure: the plate is ghosted and sits in the middle of its stated order-of-magnitude band, which the dashed whisker spans.',
-  nand: 'A component rather than a product: capacity and cost per GB do not apply, so the plate is a small dashed square.',
+  nand: 'A component rather than a product: capacity and cost per GB do not apply, so the plate is a small square with a dashed inner line.',
   usb: 'No single published figure: the plate is ghosted and sits inside its stated order of magnitude, after SATA as Section D orders it.',
   'hdd-15k':
     "The human-scale table (Section E) converts this drive's 2.0 ms rotational figure. Section D's total with seek is roughly 5 to 6 ms, which is where its whisker sits.",

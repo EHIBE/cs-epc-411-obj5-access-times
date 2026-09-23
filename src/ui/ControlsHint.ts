@@ -60,7 +60,7 @@ export class ControlsHint {
 
   /** The first interaction after the hint fades brings it back once as a reminder. */
   noteInteraction(): void {
-    if (this.replayed || this.root.dataset.faded !== 'true') return
+    if (this.replayed || this.root.dataset.faded !== 'true' || document.querySelector('dialog[open]')) return
     this.replayed = true
     this.show(true)
   }

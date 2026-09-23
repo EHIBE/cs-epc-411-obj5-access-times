@@ -6,6 +6,8 @@ import { el, richText } from './dom'
 import { buildFigure, type FigureContext, type LiveFigure } from './Figures'
 import { icon } from './icons'
 
+const FIT_TOLERANCE = 4
+
 export interface DeckCallbacks {
   next: () => void
   previous: () => void
@@ -24,6 +26,7 @@ export class Deck {
   private counter: HTMLElement | null = null
   private previousButton: HTMLButtonElement | null = null
   private nextButton: HTMLButtonElement | null = null
+  private slideFigureWrap: HTMLElement | null = null
 
   constructor(root: HTMLElement, data: FactSheet, context: FigureContext, callbacks: DeckCallbacks) {
     this.root = root
@@ -31,13 +34,44 @@ export class Deck {
     this.context = context
     this.callbacks = callbacks
     root.addEventListener('scroll', () => this.updateOverflow(), { passive: true })
-    new ResizeObserver(() => this.updateOverflow()).observe(root)
+    window.addEventListener('resize', () => window.requestAnimationFrame(() => this.fit()))
+  }
+
+  /** Sets a step at full size and only compacts what it must: a long table first gives up exactly the rows that overflow, and only if the step still runs past the panel does it switch to the projector setting (earlier leads on one line, a wider panel, slightly smaller text), with the table then refilled to the space left. Phones keep the scrolling sheet. */
+  private fit(): void {
+    const root = this.root
+    const table = root.querySelector<HTMLElement>('.table-window')
+    const visibleTable = table && table.offsetParent ? table : null
+    const overflow = (): number => root.scrollHeight - root.clientHeight
+    root.dataset.tight = 'false'
+    document.body.dataset.tight = 'false'
+    if (table) table.style.maxHeight = ''
+    if (window.innerWidth >= 768) {
+      if (visibleTable && overflow() > FIT_TOLERANCE) this.shrinkTable(visibleTable, overflow())
+      if (overflow() > FIT_TOLERANCE) {
+        root.dataset.tight = 'true'
+        document.body.dataset.tight = 'true'
+        if (visibleTable) {
+          visibleTable.style.maxHeight = ''
+          if (overflow() > FIT_TOLERANCE) this.shrinkTable(visibleTable, overflow())
+        }
+      }
+    }
+    this.updateOverflow()
+    window.dispatchEvent(new Event('deckfit'))
+  }
+
+  /** Shortens a table's scroll window by the overflow, never below about seven rows at full size or five in the projector setting. */
+  private shrinkTable(table: HTMLElement, overflow: number): void {
+    const rem = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
+    const rows = this.root.dataset.tight === 'true' ? 11 : 14
+    table.style.maxHeight = `${Math.max(rows * rem, table.offsetHeight - overflow)}px`
   }
 
   /** Marks the panel while content runs past the footer, so the fade above the footer only appears when there is more to scroll to. */
   private updateOverflow(): void {
     const root = this.root
-    root.dataset.overflow = String(root.scrollHeight - root.scrollTop - root.clientHeight > 6)
+    root.dataset.overflow = String(root.scrollHeight - root.scrollTop - root.clientHeight > FIT_TOLERANCE + 2)
   }
 
   show(slideIndex: number, stepIndex: number): void {
@@ -63,10 +97,10 @@ export class Deck {
       slide.subtitle ? el('p', { className: 'mt-2 text-[1.05rem] font-semibold text-[var(--ink-2)] [font-stretch:108%]', text: slide.subtitle }) : null,
       slide.titleNote ? el('p', { className: 't-cite mt-3 text-[0.82rem]', text: slide.titleNote }) : null,
     ])
-    const list = el('ol', { className: 'grid gap-2.5', attrs: { 'aria-label': 'Key facts' } })
+    const list = el('ol', { className: 'grid gap-1.5', attrs: { 'aria-label': 'Key facts' } })
     this.facts = slide.steps.map((step, index) => {
       const body = el('div', { className: 'fact__body mt-1.5 pl-[1.7rem]' }, [
-        el('p', { className: 'text-[clamp(1rem,0.6vw+0.62rem,1.3rem)] leading-[1.42] max-w-[60ch]' }, [richText(step.body)]),
+        el('p', { className: 'fact__text' }, [richText(step.body)]),
         step.note ? el('p', { className: 'presenter-note mt-1.5', text: step.note }) : null,
         step.cites.length > 0
           ? el('p', { className: 't-cite mt-1.5 text-[0.78rem]', text: step.cites.map((cite) => `(${cite})`).join(' ') })
@@ -88,6 +122,7 @@ export class Deck {
     })
     const slideFigure = slide.figure ? buildFigure(slide.figure, this.context) : null
     if (slideFigure) this.figures.push(slideFigure)
+    this.slideFigureWrap = slideFigure ? el('div', { className: 'mt-2' }, [slideFigure.element]) : null
 
     this.counter = el('span', { className: 'num t-label text-[0.8rem] text-[var(--ink-2)]' })
     this.previousButton = el(
@@ -110,7 +145,7 @@ export class Deck {
     const article = el('article', { className: 'deck-enter', attrs: { 'aria-labelledby': 'slide-title' } }, [
       header,
       list,
-      slideFigure ? el('div', { className: 'mt-2' }, [slideFigure.element]) : null,
+      this.slideFigureWrap,
       footer,
     ])
     this.root.appendChild(article)
@@ -130,9 +165,11 @@ export class Deck {
         button.setAttribute('aria-current', index === stepIndex ? 'step' : 'false')
       }
     })
+    if (this.slideFigureWrap) this.slideFigureWrap.hidden = Boolean(slide.steps[stepIndex]?.figure)
+    this.fit()
+    window.requestAnimationFrame(() => this.fit())
     const current = this.facts[stepIndex]
     if (current) current.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-    this.updateOverflow()
     if (this.counter) this.counter.textContent = `Step ${stepIndex + 1} of ${slide.steps.length}`
     const lastSlide = this.slideIndex >= this.data.slides.length - 1
     const lastStep = stepIndex >= slide.steps.length - 1

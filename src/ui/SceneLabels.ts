@@ -66,6 +66,8 @@ export class SceneLabels {
     const { layer, stack, column, specimens, annotations, sweep } = sources
     const humanById = new Map(sources.humanEntries.map((entry) => [entry.id, entry]))
     layer.alignColumn('callouts', CALLOUT_COLUMN_OFFSET)
+    layer.thinGroup('decades')
+    layer.thinGroup('human')
 
     for (const device of sources.devices) {
       const tint = speedColor(speedT(placementLog(device), sources.domain))
@@ -94,7 +96,7 @@ export class SceneLabels {
         return column.group.localToWorld(target)
       }
       if (label.kind === 'note') {
-        layer.add({ id: 'column:note', element: this.note, anchor, placement: 'above', offset: 8, visible: true })
+        layer.add({ id: 'column:note', element: this.note, anchor, placement: 'above', offset: 8, clampX: true, yieldTo: 'callouts', visible: true })
         continue
       }
       const className =
@@ -109,7 +111,7 @@ export class SceneLabels {
         element,
         anchor,
         placement: label.kind === 'epoch' ? 'rotated' : label.kind === 'human' ? 'right' : 'left',
-        offset: label.kind === 'epoch' ? 70 : 8,
+        offset: label.kind === 'epoch' ? 60 : 8,
         group: label.kind === 'human' ? 'human' : label.kind === 'decade' ? 'decades' : undefined,
         visible: label.kind === 'decade',
       })
@@ -126,8 +128,9 @@ export class SceneLabels {
           id,
           element,
           anchor: (target) => (specimen.visibleAmount > 0.7 ? specimen.labelAnchor(label, target) : null),
-          placement: 'above',
-          offset: 6,
+          placement: label.direction ?? 'above',
+          offset: label.offset ?? 30,
+          leader: true,
           group: `specimen:${specimenId}`,
         })
         this.specimenLabelIds.push({ id, specimen: specimenId, visible: label.visible })
@@ -143,15 +146,18 @@ export class SceneLabels {
       visible: true,
     })
     for (const specimenId of Object.keys(specimens.all) as SpecimenId[]) {
-      const title = el('div', { className: 'tick-label tick-label--detail', text: SPECIMEN_DETAILS[specimenId].title })
+      const detail = SPECIMEN_DETAILS[specimenId]
+      const specimen = specimens.all[specimenId]
+      const title = el('div', { className: 'tick-label tick-label--detail' }, [
+        el('span', { className: 'block', text: detail.title }),
+        detail.note ? el('small', { text: detail.note }) : null,
+      ])
       this.detailTitles.set(specimenId, title)
       layer.add({
         id: `detail:title:${specimenId}`,
         element: title,
-        anchor: (target) => (specimens.active === specimenId && specimens.detailAmount > 0.6 ? target.copy(specimens.leaderStart) : null),
-        placement: 'aboveRight',
-        offset: 26,
-        group: `specimen:${specimenId}`,
+        anchor: (target) => (specimens.active === specimenId && specimens.detailAmount > 0.8 ? specimen.titleAnchor(target) : null),
+        placement: 'center',
         visible: true,
       })
     }
@@ -210,6 +216,8 @@ export class SceneLabels {
       },
       placement: 'left',
       offset: 10,
+      occluder: true,
+      clampX: true,
     })
     this.refreshAll()
   }
@@ -224,6 +232,7 @@ export class SceneLabels {
   setCompact(compact: boolean): void {
     if (compact === this.compact) return
     this.compact = compact
+    this.sources.stack.compactAnchors = compact
     this.sources.layer.setVisible('column:note', !compact)
     for (const callout of this.callouts.values()) {
       callout.element.dataset.compact = String(compact)
@@ -352,10 +361,10 @@ export class SceneLabels {
     const lost = device.volatile && !this.powerOn
     const reached = this.reached.has(id)
     const text = el('span')
-    if (lost) text.textContent = 'contents lost'
-    else if (this.human) text.textContent = callout.human ? callout.human.human : 'no single figure to convert'
+    if (this.human) text.textContent = callout.human ? callout.human.human : 'no single figure to convert'
     else text.appendChild(richText(device.calloutText))
-    value.replaceChildren(...(reached ? [icon('check', 'icon'), text] : [text]))
+    const reading = lost ? [el('s', {}, [text]), el('span', { className: 'callout__lost', text: 'contents lost' })] : [text]
+    value.replaceChildren(...(reached ? [icon('check', 'icon'), ...reading] : reading))
     element.dataset.reached = String(reached)
     element.dataset.lost = String(lost)
     this.sources.layer.touch(`callout:${id}`)

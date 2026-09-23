@@ -9,7 +9,7 @@ const KEY: readonly [string, string][] = [
   ['Height', 'Access time on a log scale: every power of ten is the same distance, fastest at the top'],
   ['Width', 'Typical capacity, also on a log scale'],
   ['Depth', 'Relative cost per GB, ranked from the fact sheet wording'],
-  ['Dashed outline', 'No comparable figure for that dimension (not sold separately, a component, or pay-per-use)'],
+  ['Dashed inner line', 'No comparable figure for that dimension (not sold separately, a component, or pay-per-use)'],
   ['Ghosted plate', 'No single published access time; it sits inside its stated order of magnitude'],
   ['Whisker', 'The stated range beside each plate; dashed when it is an order-of-magnitude band'],
   ['Hatching', 'The front edge of each plate is hatched by family, as a geological section marks its rock types'],
@@ -57,7 +57,7 @@ export function mountLegend(root: HTMLElement, devices: Device[], domain: SpeedD
       el('h2', { className: 'text-[0.78rem] font-bold [font-stretch:94%]', text: 'Color follows access time' }),
       toggle,
     ]),
-    el('ol', { className: 'mt-2 grid grid-cols-5 gap-2.5', attrs: { 'aria-label': 'Speed tiers' } }, tiers),
+    el('ol', { className: 'legend-tiers mt-2 grid grid-cols-5 gap-2.5', attrs: { 'aria-label': 'Speed tiers' } }, tiers),
     key,
   )
 }

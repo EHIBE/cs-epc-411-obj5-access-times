@@ -42,9 +42,11 @@ The talk has 10 slides and 48 steps, sized to the fact sheet's 10-minute plan. E
 
 With the mouse, drag to rotate, scroll to zoom, right-drag to pan, and click any stratum for its full specification. The bottom rail's segments are sized by each slide's planned minutes. Its clock starts when you leave the title slide, and the marker shows where the talk should be by now.
 
+On shorter screens, such as a 1366 × 768 laptop driving a projector, a step that would not fit switches the slide panel to a compact setting: earlier points run together on one line and the panel widens a little, so every step fits without scrolling from 768px tall up.
+
 Press N, or the notepad button in the top bar, to show the presenter layer while rehearsing: each slide's planned minutes and lesson link, and the builder's notes about a figure. It is hidden by default.
 
-The light theme is tuned for projectors in lit classrooms; the dark theme is a blueprint-style sheet for dim rooms and screen sharing. The URL keeps your place (`#3.2` is slide 3, step 2), so a refresh mid-talk returns to the same step.
+The light theme is tuned for projectors in lit classrooms; the dark theme, a deep navy sheet with light linework, suits dim rooms and screen sharing. The URL keeps your place (`#3.2` is slide 3, step 2), so a refresh mid-talk returns to the same step.
 
 ## Reading the model
 
@@ -56,7 +58,7 @@ The light theme is tuned for projectors in lit classrooms; the dark theme is a b
 | Color | Speed: blue/cyan (fastest) through green and ochre to desaturated rust (slowest) |
 | Whisker | The stated range; dashed when it is only an order-of-magnitude band |
 | Ghosted plate | No single published figure (byte-addressable NVM, USB/SD) |
-| Dashed outline | No comparable figure for that dimension |
+| Dashed inner line | No comparable figure for that dimension |
 | Hatching | Each plate's front edge is hatched by family (CPU, memory, flash, mechanical, archive), as a geological section marks rock types |
 | Line-only plate | In close-ups and mechanism details, plates outside the step's focus are drawn in outline only |
 | Detail mark | A numbered circle on a plate's edge, joined by a leader to the mechanism model drawn beside it (schematic, not to scale) |

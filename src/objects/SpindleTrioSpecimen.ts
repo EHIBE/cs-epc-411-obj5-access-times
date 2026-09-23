@@ -9,7 +9,6 @@ import {
   Vector3,
   type Color,
 } from 'three'
-import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js'
 import { createKit, Specimen, tintKit, type SpecimenKit } from './Specimen'
 
 export const SLOWDOWN = 500
@@ -30,12 +29,6 @@ export class SpindleTrioSpecimen extends Specimen {
 
   constructor(accents: Color[]) {
     super()
-    this.dock.set(-10.2, -0.3, 0)
-    const base = new Mesh(new RoundedBoxGeometry(20.4, 0.5, 7.4, 3, 0.26), this.kit.aluminum)
-    base.position.y = -0.3
-    base.receiveShadow = true
-    base.castShadow = true
-    this.root.add(base)
     SPINDLES.forEach((spindle, index) => {
       const x = (index - 1) * 6.7
       const platter = new Mesh(new CylinderGeometry(2.55, 2.55, 0.12, 80), this.kit.mirror)
@@ -47,6 +40,7 @@ export class SpindleTrioSpecimen extends Specimen {
         const ring = new Mesh(new RingGeometry(radius - 0.012, radius + 0.012, 96), this.trackInk)
         ring.rotation.x = -Math.PI / 2
         ring.position.set(x, 0.125, 0)
+        ring.userData.noEdges = true
         this.root.add(ring)
       }
       const group = new Group()
@@ -57,20 +51,17 @@ export class SpindleTrioSpecimen extends Specimen {
         new MeshBasicMaterial({ color: accent?.clone(), transparent: true, opacity: 0.85, side: DoubleSide }),
       )
       marker.rotation.x = -Math.PI / 2
+      marker.userData.noEdges = true
       group.add(marker)
       const head = new Mesh(new BoxGeometry(0.16, 0.16, 1.2), this.headInk)
       head.position.set(x, 0.3, -2.1)
       this.root.add(platter, hub, group, head)
       const omega = ((spindle.rpm / 60) * Math.PI * 2) / SLOWDOWN
       this.spinners.push({ group, omega, marker, angle: index * 1.3 })
-      this.label(`rpm:${spindle.rpm}`, spindle.label, new Vector3(x, 0.4, 3.3), () => true, 'strong')
-      this.label(
-        `rotation:${spindle.rpm}`,
-        `one turn ${(60000 / spindle.rpm).toFixed(spindle.rpm === 15000 ? 0 : spindle.rpm === 7200 ? 2 : 1)} ms, ${spindle.average}`,
-        new Vector3(x, 0.4, 4.6),
-      )
+      this.label(`rpm:${spindle.rpm}`, `${spindle.label}, ${spindle.average}`, new Vector3(x, 0.12, 2.55), () => true, 'strong')
     })
-    this.label('slowdown', `Shown ${SLOWDOWN} times slower than real, same ratio`, new Vector3(0, 0.4, -4.4))
+    this.detailSheet(this.kit, { minX: -10.2, maxX: 10.2, minZ: -3.6, maxZ: 5.6, y: -0.01, titleWidth: 7.4 })
+    this.inkEdges(this.kit)
   }
 
   applyPalette(ink: Color, dark: boolean): void {

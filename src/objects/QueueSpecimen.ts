@@ -8,7 +8,6 @@ import {
   Vector3,
   type Color,
 } from 'three'
-import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js'
 import { createKit, Specimen, tintKit, type SpecimenKit } from './Specimen'
 
 const SATA_COMMANDS = 32
@@ -33,11 +32,6 @@ export class QueueSpecimen extends Specimen {
 
   constructor(sataColor: Color, nvmeColor: Color) {
     super()
-    this.dock.set(-8.6, -0.25, 0.2)
-    const bed = new Mesh(new RoundedBoxGeometry(20, 0.4, 13.4, 3, 0.24), this.kit.aluminum)
-    bed.position.set(1.4, -0.28, 0.2)
-    bed.receiveShadow = true
-    bed.castShadow = true
     const sataRail = new Mesh(new BoxGeometry(LANE_LENGTH + 0.4, 0.06, 0.5), this.kit.well)
     sataRail.position.set(-3.4, 0.0, SATA_Z)
     const nvmeRail = new Mesh(new BoxGeometry(LANE_LENGTH + 0.4, 0.06, 8.6), this.kit.well)
@@ -61,12 +55,12 @@ export class QueueSpecimen extends Specimen {
     this.nvmeGate.position.set(-3.4 + LANE_LENGTH / 2 + 0.35, 0.3, NVME_Z)
 
     const sataBar = new Mesh(
-      new RoundedBoxGeometry(1.1, IOPS_UNIT, 1.1, 2, 0.08),
+      new BoxGeometry(1.1, IOPS_UNIT, 1.1),
       new MeshStandardMaterial({ color: sataColor, metalness: 0.3, roughness: 0.4 }),
     )
     sataBar.position.set(4.4, IOPS_UNIT / 2, SATA_Z)
     const nvmeBar = new Mesh(
-      new RoundedBoxGeometry(1.1, IOPS_UNIT * 5, 1.1, 2, 0.08),
+      new BoxGeometry(1.1, IOPS_UNIT * 5, 1.1),
       new MeshStandardMaterial({ color: nvmeColor, metalness: 0.3, roughness: 0.4 }),
     )
     nvmeBar.position.set(6.8, (IOPS_UNIT * 5) / 2, NVME_Z)
@@ -76,13 +70,14 @@ export class QueueSpecimen extends Specimen {
     pastCap.position.set(6.8, IOPS_UNIT * 5 + 0.04, NVME_Z)
     for (const bar of [sataBar, nvmeBar]) bar.castShadow = true
 
-    this.root.add(bed, sataRail, nvmeRail, this.sata, this.nvme, this.sataGate, this.nvmeGate, sataBar, nvmeBar, pastMark, pastCap)
-    this.label('sata', 'SATA (AHCI): one queue of 32 commands', new Vector3(-3.4, 0.5, SATA_Z + 1.1), () => true, 'strong')
-    this.label('nvme', 'NVMe: up to 64,000 queues of 64,000 commands (64 by 64 drawn)', new Vector3(-3.4, 0.5, NVME_Z - 4.6), () => true, 'strong')
-    this.label('sata-iops', 'about 200,000 IOPS', new Vector3(4.4, IOPS_UNIT + 0.4, SATA_Z))
-    this.label('nvme-iops', 'past 1,000,000 IOPS', new Vector3(6.8, IOPS_UNIT * 5 + 1.6, NVME_Z))
-    this.label('schematic', 'Schematic: bar heights to scale, queue sizes not', new Vector3(1.4, 0.3, 7.4))
-    this.label('seq', 'Rated around 7,450 MB/s sequential read (NVMe)', new Vector3(8.6, IOPS_UNIT * 3, NVME_Z), () => this.mode === 'protocol', 'strong')
+    this.root.add(sataRail, nvmeRail, this.sata, this.nvme, this.sataGate, this.nvmeGate, sataBar, nvmeBar, pastMark, pastCap)
+    this.detailSheet(this.kit, { minX: -8.6, maxX: 11.2, minZ: -6.2, maxZ: 8.6, y: -0.035, titleWidth: 7.6 })
+    this.inkEdges(this.kit)
+    this.label('sata', 'SATA (AHCI): one queue of 32 commands', new Vector3(-3.4, 0.03, SATA_Z), () => true, 'strong')
+    this.label('nvme', 'NVMe: up to 64,000 queues of 64,000 commands (64 by 64 drawn)', new Vector3(-3.4, 0.08, NVME_Z - 3.2), () => true, 'strong')
+    this.label('sata-iops', 'about 200,000 IOPS', new Vector3(4.4, IOPS_UNIT, SATA_Z))
+    this.label('nvme-iops', 'past 1,000,000 IOPS', new Vector3(6.8, IOPS_UNIT * 5 + 1.4, NVME_Z))
+    this.label('seq', 'Rated around 7,450 MB/s sequential read (NVMe)', new Vector3(7.35, IOPS_UNIT * 3, NVME_Z), () => this.mode === 'protocol', 'strong')
   }
 
   applyPalette(ink: Color, dark: boolean): void {

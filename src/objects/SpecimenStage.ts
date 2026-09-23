@@ -4,7 +4,7 @@ import { HardDiskSpecimen } from './HardDiskSpecimen'
 import { OpticalSpecimen } from './OpticalSpecimen'
 import { QueueSpecimen } from './QueueSpecimen'
 import type { Specimen } from './Specimen'
-import { SpindleTrioSpecimen } from './SpindleTrioSpecimen'
+import { SLOWDOWN, SpindleTrioSpecimen } from './SpindleTrioSpecimen'
 import { TapeSpecimen } from './TapeSpecimen'
 
 export type SpecimenId = 'die' | 'hdd' | 'trio' | 'queues' | 'optical' | 'tape'
@@ -19,18 +19,21 @@ export interface SpecimenPalette {
   tape: string
 }
 
+const MARK_RISE = 1.7
+
 export interface SpecimenDetail {
   source: string
   title: string
+  note?: string
   position: Vector3
 }
 
 /** Each mechanism is a detail drawn beside the stratum it explains: level with that layer, clear of every wider plate nearby, and joined to its source by one hairline leader. */
 export const SPECIMEN_DETAILS: Record<SpecimenId, SpecimenDetail> = {
-  die: { source: 'l1', title: 'Inside the processor', position: new Vector3(12.5, 26.6, 0) },
+  die: { source: 'l1', title: 'Inside the processor', note: 'Schematic, not to scale', position: new Vector3(14.5, 26.6, 0) },
   hdd: { source: 'hdd-7200', title: 'Hard disk, 7,200 RPM', position: new Vector3(22.5, 3.4, 0) },
-  trio: { source: 'hdd-7200', title: 'Three spindle speeds', position: new Vector3(26.5, 3.9, 0) },
-  queues: { source: 'sata', title: 'SATA and NVMe queues', position: new Vector3(20, 9.4, 0) },
+  trio: { source: 'hdd-7200', title: 'Three spindle speeds', note: `Shown ${SLOWDOWN} times slower than real, same ratio`, position: new Vector3(26.5, 3.9, 0) },
+  queues: { source: 'sata', title: 'SATA and NVMe queues', note: 'Bar heights to scale, queue sizes not', position: new Vector3(20, 9.4, 0) },
   optical: { source: 'optical', title: 'Optical disc and hard disk tracks', position: new Vector3(25.5, -0.2, 0) },
   tape: { source: 'tape', title: 'Tape library and drive', position: new Vector3(27, -8.4, 0) },
 }
@@ -46,9 +49,8 @@ export class SpecimenStage {
   readonly tape: TapeSpecimen
   readonly all: Record<SpecimenId, Specimen>
   readonly leaderStart = new Vector3()
-  readonly leaderMid = new Vector3()
   private readonly leader: LineSegments<BufferGeometry, LineBasicMaterial>
-  private readonly positions = new Float32Array(12)
+  private readonly positions = new Float32Array(18)
   private readonly anchorOf: (id: string, target: Vector3) => Vector3 | null
   private readonly start = new Vector3()
   private readonly end = new Vector3()
@@ -99,7 +101,7 @@ export class SpecimenStage {
     this.leader.material.color.copy(ink)
   }
 
-  /** Routes the leader from the source stratum's right edge, out along a short shoulder, then across to the model's dock. */
+  /** Routes the leader from the source stratum's right edge along a short shoulder, up to the numbered detail mark (which rides above the plates, just before the detail sheet), then across to the sheet. */
   private routeLeader(): void {
     const id = this.current
     const specimen = id ? this.all[id] : null
@@ -108,16 +110,17 @@ export class SpecimenStage {
       this.leader.visible = false
       return
     }
-    this.leaderStart.copy(this.start)
     specimen.dockPoint(this.end)
     this.group.worldToLocal(this.start)
     this.group.worldToLocal(this.end)
-    const kneeX = this.start.x + 1.4
-    const points = [this.start.x, this.start.y, this.start.z, kneeX, this.start.y, this.start.z, kneeX, this.start.y, this.start.z, this.end.x, this.end.y, this.end.z]
-    this.positions.set(points)
+    const shoulderX = this.start.x + 0.9
+    const markX = Math.max(this.start.x + 2.4, this.end.x - 1.1)
+    const markY = this.start.y + MARK_RISE
+    const { x, y, z } = this.start
+    this.positions.set([x, y, z, shoulderX, y, z, shoulderX, y, z, markX, markY, z, markX, markY, z, this.end.x, this.end.y, this.end.z])
     this.leader.geometry.getAttribute('position').needsUpdate = true
-    this.leaderMid.set((kneeX + this.end.x) / 2, (this.start.y + this.end.y) / 2, (this.start.z + this.end.z) / 2)
-    this.group.localToWorld(this.leaderMid)
+    this.leaderStart.set(markX, markY, z)
+    this.group.localToWorld(this.leaderStart)
     this.leader.material.opacity = 0.85 * this.leaderAmount
     this.leader.visible = true
   }

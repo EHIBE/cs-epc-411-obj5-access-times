@@ -19,7 +19,7 @@ import {
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js'
 import type { Device, TierId } from '../data/types'
 import { brighten } from '../utils/color'
-import { clamp, seededRandom, Spring } from '../utils/math'
+import { clamp, seededRandom, smoothstep, Spring } from '../utils/math'
 import { PLATE } from '../utils/scale'
 
 export interface StratumSpec {
@@ -34,6 +34,7 @@ export interface StratumSpec {
 }
 
 const TILT_RADIANS = (14 * Math.PI) / 180
+const HATCH_PITCH: Record<TierId, number> = { cpu: 0.2, memory: 0.42, flash: 0.2, mechanical: 0.24, archive: 0.3 }
 const LOST_HEX = '#6b737b'
 const GRAIN_SIZE = 256
 
@@ -69,12 +70,12 @@ function satinGrain(): Texture {
   return grain
 }
 
-/** Builds the top and bottom rounded-rectangle outlines of a plate as line segments: the single hairline weight of the drawing. */
-function outlineGeometry(width: number, depth: number, thickness: number): BufferGeometry {
-  const radius = Math.min(PLATE.radius * 1.4, width / 4, depth / 4)
+/** Builds rounded-rectangle outlines of a plate as line segments at the given heights, inset from the silhouette by the given amount: the single hairline weight of the drawing. */
+function outlineGeometry(width: number, depth: number, heights: readonly number[], inset = 0): BufferGeometry {
+  const w = width / 2 - inset
+  const d = depth / 2 - inset
+  const radius = Math.min(PLATE.radius * 1.4, w / 2, d / 2)
   const shape = new Shape()
-  const w = width / 2
-  const d = depth / 2
   shape.moveTo(-w + radius, -d)
   shape.lineTo(w - radius, -d)
   shape.quadraticCurveTo(w, -d, w, -d + radius)
@@ -86,7 +87,7 @@ function outlineGeometry(width: number, depth: number, thickness: number): Buffe
   shape.quadraticCurveTo(-w, -d, -w + radius, -d)
   const points = shape.getPoints(4)
   const positions: number[] = []
-  for (const y of [thickness / 2 + 0.004, -thickness / 2 - 0.004]) {
+  for (const y of heights) {
     for (let i = 0; i < points.length - 1; i += 1) {
       const a = points[i]
       const b = points[i + 1]
@@ -154,7 +155,8 @@ export class DeviceStratum {
   readonly device: Device
   readonly group = new Group()
   readonly body: Mesh<RoundedBoxGeometry, MeshStandardMaterial>
-  readonly outline: LineSegments<BufferGeometry, LineBasicMaterial | LineDashedMaterial>
+  readonly outline: LineSegments<BufferGeometry, LineBasicMaterial>
+  readonly inlay: LineSegments<BufferGeometry, LineDashedMaterial> | null
   readonly hatch: LineSegments<BufferGeometry, LineBasicMaterial> | null
   readonly baseY: number
   readonly width: number
@@ -173,6 +175,7 @@ export class DeviceStratum {
   readonly presence = new Spring(1, 90, 18)
   float = 0
   enterAt = 0
+  pixelScale = 12
   entered = true
   private readonly baseColor: Color
   private readonly brightColor: Color
@@ -211,11 +214,18 @@ export class DeviceStratum {
     this.body.userData.deviceId = spec.device.id
     this.body.name = `stratum:${spec.device.id}`
 
-    const lineMaterial = spec.unrated || spec.ghost
-      ? new LineDashedMaterial({ color: 0x2e3945, dashSize: 0.34, gapSize: 0.22, transparent: true, opacity: 0.6 })
-      : new LineBasicMaterial({ color: 0x2e3945, transparent: true, opacity: 0.6 })
-    this.outline = new LineSegments(outlineGeometry(spec.width, spec.depth, PLATE.thickness), lineMaterial)
-    if (lineMaterial instanceof LineDashedMaterial) this.outline.computeLineDistances()
+    const top = PLATE.thickness / 2
+    this.outline = new LineSegments(
+      outlineGeometry(spec.width, spec.depth, [top + 0.004, -top - 0.004]),
+      new LineBasicMaterial({ color: 0x2e3945, transparent: true, opacity: 0.6 }),
+    )
+    this.inlay = spec.unrated || spec.ghost
+      ? new LineSegments(
+          outlineGeometry(spec.width, spec.depth, [top + 0.003], Math.min(0.34, spec.width / 6, spec.depth / 6)),
+          new LineDashedMaterial({ color: 0x2e3945, dashSize: 0.36, gapSize: 0.24, transparent: true, opacity: 0.7 }),
+        )
+      : null
+    this.inlay?.computeLineDistances()
     this.hatch = spec.ghost
       ? null
       : new LineSegments(
@@ -224,6 +234,7 @@ export class DeviceStratum {
         )
 
     this.group.add(this.body, this.outline)
+    if (this.inlay) this.group.add(this.inlay)
     if (this.hatch) this.group.add(this.hatch)
     let reach = spec.width / 2
     if (spec.device.capacity.unlimited) {
@@ -258,14 +269,15 @@ export class DeviceStratum {
   setPalette(ground: Color, line: Color, edgeOpacity: number, hatchOpacity: number): void {
     this.ground.copy(ground)
     this.outline.material.color.copy(line)
-    this.edgeOpacity = this.outline.material instanceof LineDashedMaterial ? edgeOpacity + 0.1 : edgeOpacity
+    this.inlay?.material.color.copy(line)
+    this.edgeOpacity = edgeOpacity
     this.hatchOpacity = hatchOpacity
     if (this.hatch) this.hatch.material.color.copy(line)
   }
 
   /** World-space point at the plate's right edge, where its callout leader starts. */
-  anchor(target: Vector3): Vector3 {
-    target.set(this.reach + 0.25, 0, 0)
+  anchor(target: Vector3, solidEdge = false): Vector3 {
+    target.set((solidEdge ? this.width / 2 : this.reach) + 0.25, 0, 0)
     return this.group.localToWorld(target)
   }
 
@@ -314,8 +326,13 @@ export class DeviceStratum {
     const line = 0.3 + 0.7 * emphasis
     this.outline.material.opacity = this.edgeOpacity * (0.42 + (line - 0.42) * presence)
     this.outline.visible = this.outline.material.opacity > 0.01
+    if (this.inlay) {
+      this.inlay.material.opacity = (this.edgeOpacity + 0.1) * line * (0.35 + 0.65 * presence)
+      this.inlay.visible = this.inlay.material.opacity > 0.01
+    }
     if (this.hatch) {
-      this.hatch.material.opacity = this.hatchOpacity * emphasis * presence * (0.4 + 0.6 * energy)
+      const resolved = smoothstep(clamp((HATCH_PITCH[this.device.tier] * this.pixelScale * this.scale.value - 5) / 5, 0, 1))
+      this.hatch.material.opacity = this.hatchOpacity * emphasis * presence * resolved * (0.4 + 0.6 * energy)
       this.hatch.visible = this.hatch.material.opacity > 0.02
     }
     for (const piece of this.extensions) {

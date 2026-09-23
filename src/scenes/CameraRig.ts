@@ -69,12 +69,13 @@ export class CameraRig {
   }
 
   /** Centres the scene in the region the overlays leave free; each inset is the pixels a panel covers on that side, and the bias keeps room on the right for the callout column without shrinking the model. */
-  setFrame(insets: { left: number; right: number; top: number; bottom: number }, immediate = false, bias = 0): void {
+  setFrame(insets: { left: number; right: number; top: number; bottom: number }, immediate = false, bias = 0, compact = false): void {
     const freeWidth = Math.max(1, this.width - insets.left - insets.right)
     const freeHeight = Math.max(1, this.height - insets.top - insets.bottom)
     const shift = (insets.left - insets.right - bias) / 2
     const lift = (insets.bottom - insets.top) / 2
-    const zoom = clamp(Math.min(freeWidth / (this.width * 0.64), freeHeight / (this.height * 0.86)), 0.6, 1.12)
+    const fit = compact ? 0.62 : 0.86
+    const zoom = clamp(Math.min(freeWidth / (this.width * 0.64), freeHeight / (this.height * fit)), compact ? 0.3 : 0.6, 1.12)
     if (immediate) {
       this.shift.snap(shift)
       this.lift.snap(lift)
@@ -117,6 +118,12 @@ export class CameraRig {
 
   get isFlying(): boolean {
     return this.flight !== null
+  }
+
+  /** Screen pixels covered by one world unit at the orbit target, for detail that should only draw once it can be resolved. */
+  pixelsPerUnit(viewHeight: number): number {
+    const distance = Math.max(0.001, this.camera.position.distanceTo(this.controls.target))
+    return (viewHeight / 2 / (distance * Math.tan((this.camera.fov * Math.PI) / 360))) * this.camera.zoom
   }
 
   update(dt: number): void {

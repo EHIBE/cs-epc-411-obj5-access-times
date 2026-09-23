@@ -5,6 +5,11 @@ import { icon } from './icons'
 
 const LIMIT_MS = 10 * 60 * 1000
 
+/** Shorter rail names for the narrowest segments, taken from the slide's own title. */
+const SHORT_TITLES: Record<string, string> = { 'Master table': 'Table' }
+
+const FIT_LEVELS = ['inline', 'stack', 'narrow', 'short', 'number'] as const
+
 /** The bottom rail: one segment per slide sized by its planned minutes, a presenter clock, and a marker showing where the talk should be by now. */
 export class Rail {
   private readonly segments: HTMLButtonElement[] = []
@@ -29,7 +34,7 @@ export class Rail {
         'button',
         {
           className: 'rail-seg w-full',
-          attrs: { type: 'button', 'aria-label': `Slide ${slide.number}: ${slide.shortTitle}, ${slide.minutes} minutes planned` },
+          attrs: { type: 'button', title: slide.shortTitle, 'aria-label': `Slide ${slide.number}: ${slide.shortTitle}, ${slide.minutes} minutes planned` },
           on: { click: () => onJump(index) },
         },
         [
@@ -62,6 +67,24 @@ export class Rail {
     )
     this.renderControls()
     this.renderTime()
+    new ResizeObserver(() => this.fitTitles()).observe(this.track)
+    void document.fonts.ready.then(() => this.fitTitles())
+  }
+
+  /** Keeps every rail label on single lines: the number and title share a row where they fit, then stack, then narrow, then take a shorter name; the full title always stays in the segment's accessible name. */
+  private fitTitles(): void {
+    this.segments.forEach((segment, index) => {
+      const slide = this.slides[index]
+      const title = segment.querySelector<HTMLElement>('.rail-seg__title')
+      if (!slide || !title) return
+      for (const level of FIT_LEVELS) {
+        const short = SHORT_TITLES[slide.shortTitle]
+        if (level === 'short' && !short) continue
+        segment.dataset.fit = level
+        title.textContent = level === 'short' && short ? short : slide.shortTitle
+        if (segment.scrollWidth <= segment.clientWidth + 1) break
+      }
+    })
   }
 
   show(slideIndex: number, stepIndex: number): void {

@@ -21,6 +21,8 @@ export interface SpecimenLabel {
   local: Vector3
   visible: () => boolean
   tone?: 'plain' | 'strong'
+  direction?: 'above' | 'below'
+  offset?: number
 }
 
 export interface SpecimenKit {
@@ -51,8 +53,8 @@ export function createKit(): SpecimenKit {
     aluminum: satin(0xd3d9de),
     steel: satin(0x98a3ad),
     mirror: new MeshStandardMaterial({ color: 0xe6eaee, metalness: 0.42, roughness: 0.26 }),
-    anodized: satin(0x2c343d),
-    well: satin(0x3a434d),
+    anodized: satin(0x8a95a1),
+    well: satin(0xaab4bd),
     paper: new MeshStandardMaterial({ color: 0xf5f7f8, metalness: 0, roughness: 0.95 }),
     ink: new LineBasicMaterial({ color: 0x26303a, transparent: true, opacity: 0.9 }),
     faint: new LineBasicMaterial({ color: 0x26303a, transparent: true, opacity: 0.35 }),
@@ -66,7 +68,8 @@ export function tintKit(kit: SpecimenKit, ink: Color, dark: boolean): void {
   kit.edge.color.copy(ink)
   kit.faint.opacity = dark ? 0.45 : 0.35
   kit.edge.opacity = dark ? 0.62 : 0.72
-  kit.well.color.set(dark ? 0x2a323b : 0x3a434d)
+  kit.well.color.set(dark ? 0x2a323b : 0xaab4bd)
+  kit.anodized.color.set(dark ? 0x3a4550 : 0x8a95a1)
   kit.paper.color.set(dark ? 0x172a3c : 0xf5f7f8)
 }
 
@@ -144,8 +147,16 @@ export abstract class Specimen {
 
   protected onMode(_mode: string): void {}
 
-  protected label(id: string, text: string, local: Vector3, visible: () => boolean = () => true, tone: 'plain' | 'strong' = 'plain'): void {
-    this.labels.push({ id, text, local, visible, tone })
+  protected label(
+    id: string,
+    text: string,
+    local: Vector3,
+    visible: () => boolean = () => true,
+    tone: 'plain' | 'strong' = 'plain',
+    direction: 'above' | 'below' = 'above',
+    offset = 30,
+  ): void {
+    this.labels.push({ id, text, local, visible, tone, direction, offset })
   }
 
   /** Lays the paper detail sheet under the mechanism: a thin matte sheet, a double neat line, and a title block in the near right corner whose centre carries the detail's title. */

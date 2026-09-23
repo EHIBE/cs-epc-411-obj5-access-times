@@ -14,6 +14,7 @@ export interface FigureActions {
   hover: (id: string | null) => void
   togglePower: () => void
   runSweep: () => void
+  stopSweep: () => void
   openTable: () => void
 }
 
@@ -47,7 +48,7 @@ const presenterCaption = (text: string): HTMLElement => el('p', { className: 'pr
 /** Lesson 2, Slide 1's title diagram redrawn: the two access-method branches and the media on each. */
 function branches(): LiveFigure {
   const width = 460
-  const drawing = svg('svg', { viewBox: `0 0 ${width} 150`, class: 'w-full h-auto', role: 'img', 'aria-label': 'Sequential access branches to paper and magnetic tape; direct access branches to magnetic disk and optical disc' })
+  const drawing = svg('svg', { viewBox: `0 0 ${width} 150`, class: 'branch-drawing w-full h-auto', role: 'img', 'aria-label': 'Sequential access branches to paper and magnetic tape; direct access branches to magnetic disk and optical disc' })
   ACCESS_BRANCHES.forEach((branch, column) => {
     const x = column * 235 + 5
     drawing.append(
@@ -189,7 +190,7 @@ function rpm(): LiveFigure {
 /** Slide 6's side-by-side: queue shape and IOPS ceiling for each protocol, bars to scale. */
 function queues(): LiveFigure {
   const row = (name: string, queuesText: string, iops: string, fraction: number, past: boolean) =>
-    el('div', { className: 'grid grid-cols-[5.5rem_1fr] items-center gap-3' }, [
+    el('div', { className: 'queue-row grid grid-cols-[5.5rem_1fr] items-center gap-3' }, [
       el('div', {}, [el('div', { className: 'text-[0.86rem] font-bold', text: name }), el('div', { className: 't-cite text-[0.7rem]', text: queuesText })]),
       el('div', {}, [
         el('div', { className: 'relative h-3.5 bg-[var(--well)]' }, [
@@ -299,10 +300,15 @@ function table(context: FigureContext): LiveFigure {
     el('tr', {}, ['#', 'Device', 'Typical access time', 'Order of magnitude', 'Volatile?', 'Relative cost per GB', 'Typical capacity (2026)'].map((text) => el('th', { text, attrs: { scope: 'col' } }))),
   ])
   const sweepLabel = el('span', { text: 'Run the probe' })
-  const sweepButton = el('button', { className: 'ctl ctl--solid', attrs: { type: 'button' }, on: { click: () => context.actions.runSweep() } }, [icon('play'), sweepLabel])
+  const sweepGlyph = el('span', { className: 'inline-flex' }, [icon('play')])
+  const sweepButton = el(
+    'button',
+    { className: 'ctl ctl--solid', attrs: { type: 'button' }, on: { click: () => (context.isSweeping() ? context.actions.stopSweep() : context.actions.runSweep()) } },
+    [sweepGlyph, sweepLabel],
+  )
   const element = frame('Master comparison table', [
     el('p', { className: 't-cite mb-2 text-[0.8rem] leading-snug', text: context.data.sectionNote }),
-    el('div', { className: 'max-h-[min(42dvh,32rem)] overflow-auto border border-[var(--rule-strong)] bg-[var(--sheet)]' }, [el('table', { className: 'data-table' }, [head, body])]),
+    el('div', { className: 'table-window max-h-[min(42dvh,32rem)] overflow-auto border border-[var(--rule-strong)] bg-[var(--sheet)]' }, [el('table', { className: 'data-table' }, [head, body])]),
     el('div', { className: 'mt-3 flex flex-wrap items-center gap-2' }, [
       sweepButton,
       el('button', { className: 'ctl ctl--line', attrs: { type: 'button' }, on: { click: () => context.actions.openTable() } }, [icon('table'), 'All nine columns']),
@@ -327,8 +333,8 @@ function table(context: FigureContext): LiveFigure {
       })
     },
     setSweeping(on) {
-      sweepLabel.textContent = on ? 'Probe running' : 'Run the probe'
-      sweepButton.toggleAttribute('disabled', on)
+      sweepLabel.textContent = on ? 'Stop the probe' : 'Run the probe'
+      sweepGlyph.replaceChildren(icon(on ? 'pause' : 'play'))
     },
   }
 }
@@ -394,7 +400,12 @@ function human(context: FigureContext): LiveFigure {
   const first = context.data.humanScale.entries.find((entry) => entry.id === 'l1')
   if (first) describe(first, context.data.devices.find((device) => device.id === 'l1'))
   const sweepLabel = el('span', { text: 'Run the probe in human time' })
-  const sweepButton = el('button', { className: 'ctl ctl--line mt-3', attrs: { type: 'button' }, on: { click: () => context.actions.runSweep() } }, [icon('hourglass-medium'), sweepLabel])
+  const sweepGlyph = el('span', { className: 'inline-flex' }, [icon('hourglass-medium')])
+  const sweepButton = el(
+    'button',
+    { className: 'ctl ctl--line mt-3', attrs: { type: 'button' }, on: { click: () => (context.isSweeping() ? context.actions.stopSweep() : context.actions.runSweep()) } },
+    [sweepGlyph, sweepLabel],
+  )
   return {
     element: frame('Human-scale timeline', [
       el('div', { className: 'relative' }, [track, axis]),
@@ -404,8 +415,8 @@ function human(context: FigureContext): LiveFigure {
       presenterCaption('Hover or tab to a dot to read its conversion aloud.'),
     ]),
     setSweeping(on) {
-      sweepLabel.textContent = on ? 'Probe running' : 'Run the probe in human time'
-      sweepButton.toggleAttribute('disabled', on)
+      sweepLabel.textContent = on ? 'Stop the probe' : 'Run the probe in human time'
+      sweepGlyph.replaceChildren(icon(on ? 'pause' : 'hourglass-medium'))
     },
     setPointer(hovered) {
       const entry = context.data.humanScale.entries.find((candidate) => candidate.id === hovered)

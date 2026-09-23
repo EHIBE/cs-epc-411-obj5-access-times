@@ -34,7 +34,7 @@ export const SHOTS: Record<ShotId, Shot> = {
   ssdhdd: { position: [19, 12, 40], target: [-3, 7.5, 0] },
   mechanical: { position: [15, 8, 27], target: [-3, 3.6, 0] },
   archive: { position: [18, 3, 36], target: [-3, -3.4, 0] },
-  die: { position: [21.5, 31.5, 19.5], target: [11.5, 26, 0] },
+  die: { position: [20.2, 31.5, 19.5], target: [10.2, 26, 0] },
   hdd: { position: [22.8, 13.8, 13], target: [19, 3.4, 0.8] },
   trio: { position: [22.8, 17.8, 16.7], target: [22.8, 3.9, 0.9] },
   queues: { position: [24.6, 19.3, 16.4], target: [20, 9.8, 0.6] },

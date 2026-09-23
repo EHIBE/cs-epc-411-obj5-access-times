@@ -1,4 +1,5 @@
 import {
+  BoxGeometry,
   BufferGeometry,
   Color,
   Float32BufferAttribute,
@@ -7,7 +8,6 @@ import {
   MeshStandardMaterial,
   Vector3,
 } from 'three'
-import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js'
 import { clamp, Spring } from '../utils/math'
 import { createKit, Specimen, tintKit, type SpecimenKit } from './Specimen'
 
@@ -37,12 +37,11 @@ export class DieSpecimen extends Specimen {
 
   constructor(colors: DieColors) {
     super()
-    this.dock.set(-4.6, 0.1, 0)
-    const substrate = new Mesh(new RoundedBoxGeometry(9.2, 0.32, 9.2, 3, 0.2), this.kit.anodized)
+    const substrate = new Mesh(new BoxGeometry(9.2, 0.32, 9.2), this.kit.anodized)
     substrate.position.y = 0
     substrate.castShadow = true
     substrate.receiveShadow = true
-    const die = new Mesh(new RoundedBoxGeometry(5.8, 0.2, 5.8, 2, 0.1), this.kit.steel)
+    const die = new Mesh(new BoxGeometry(5.8, 0.2, 5.8), this.kit.steel)
     die.position.y = 0.26
     this.root.add(substrate, die)
     const l3 = this.plate(5.3, 0.08, 5.3, colors.l3, 0.14)
@@ -68,7 +67,7 @@ export class DieSpecimen extends Specimen {
     this.traces = new LineSegments(traceGeometry, this.kit.faint)
     this.root.add(this.traces)
     for (const x of [8.1, 9.3]) {
-      const stick = new Mesh(new RoundedBoxGeometry(0.28, 1.5, 7.6, 2, 0.06), this.kit.anodized)
+      const stick = new Mesh(new BoxGeometry(0.28, 1.5, 7.6), this.kit.anodized)
       stick.position.set(x, 0.75, 0)
       stick.castShadow = true
       this.root.add(stick)
@@ -78,18 +77,19 @@ export class DieSpecimen extends Specimen {
         this.root.add(chip)
       }
     }
-    this.label('registers', 'Registers: inside each core', new Vector3(1.3, 1.1, 1.3), () => true, 'strong')
-    this.label('l1l2', 'L1 and L2: per core', new Vector3(-1.3, 0.9, 2.6))
-    this.label('l3', 'L3: shared by every core', new Vector3(-2.9, 0.6, -2.9))
-    this.label('dram', 'DRAM: off the chip, on memory sticks', new Vector3(8.7, 1.8, -3.9))
-    this.label('schematic', 'Schematic, not to scale', new Vector3(0, 0.4, 5.2))
+    this.detailSheet(this.kit, { minX: -5.4, maxX: 10.2, minZ: -5.3, maxZ: 7, y: -0.17, titleWidth: 7 })
+    this.inkEdges(this.kit)
+    this.label('registers', 'Registers: inside each core', new Vector3(1.3, 0.77, -1.3), () => true, 'strong', 'above', 62)
+    this.label('l3', 'L3: shared by every core', new Vector3(-2.65, 0.44, -0.6), () => true, 'plain', 'above', 26)
+    this.label('l1l2', 'L1 and L2: per core', new Vector3(1.3, 0.54, 2.4), () => true, 'plain', 'below', 48)
+    this.label('dram', 'DRAM: off the chip, on memory sticks', new Vector3(8.1, 1.5, -2.6))
   }
 
   private plate(width: number, height: number, depth: number, hex: string, glow: number): Mesh {
     const base = new Color(hex)
     const material = new MeshStandardMaterial({ color: base.clone(), metalness: 0.3, roughness: 0.4, emissive: base.clone(), emissiveIntensity: glow })
     this.parts.push({ material, base, glow })
-    const mesh = new Mesh(new RoundedBoxGeometry(width, height, depth, 2, Math.min(0.06, height / 2.5)), material)
+    const mesh = new Mesh(new BoxGeometry(width, height, depth), material)
     mesh.castShadow = true
     mesh.receiveShadow = true
     return mesh

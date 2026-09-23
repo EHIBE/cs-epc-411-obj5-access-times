@@ -144,7 +144,7 @@ export class DepthColumn {
         id: `decade:${exponent}`,
         kind: 'decade',
         text: decadeLabel(exponent),
-        local: new Vector3(COLUMN_X - COLUMN_HALF - 0.25, y, FRONT),
+        local: new Vector3(COLUMN_X - COLUMN_HALF - 0.3, y, FRONT),
       })
     }
     for (const epoch of EPOCHS) {
