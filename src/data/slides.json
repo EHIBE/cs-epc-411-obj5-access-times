@@ -1,0 +1,440 @@
+{
+  "section": "C",
+  "slides": [
+    {
+      "id": "objective",
+      "number": 1,
+      "shortTitle": "Objective",
+      "title": "Differences in access times in several types of devices",
+      "subtitle": null,
+      "titleNote": "Objective #5, quoted exactly from Lesson 2, Slide 2, item 5",
+      "minutes": 0.5,
+      "lessonLink": "Lesson 2, Slides 1 to 2",
+      "visual": "Reuse or redraw the Lesson 2 title-slide diagram (Sequential Access to Paper/Tape, Direct Access to Disk/Optical)",
+      "figure": null,
+      "steps": [
+        {
+          "lead": "Scope",
+          "body": "Why the exact same task (reading data) takes wildly different amounts of time depending on which device holds it",
+          "cites": [],
+          "cue": "title-scope"
+        },
+        {
+          "lead": "Built on Objective #4",
+          "body": "This sits directly on top of Objective #4 (seek, search, and transfer time), covered first so the vocabulary is in place",
+          "cites": [],
+          "cue": "title-built"
+        },
+        {
+          "lead": "Two branches",
+          "body": "Lesson 2's title-slide diagram: Sequential Access branches to Paper Storage Media and Magnetic Tape Storage Media. Direct Access branches to Magnetic Disk Storage Media and Optical Disc Storage",
+          "cites": ["Lesson 2, Slide 1"],
+          "cue": "title-branches",
+          "figure": "branches"
+        }
+      ]
+    },
+    {
+      "id": "terms",
+      "number": 2,
+      "shortTitle": "Key terms",
+      "title": "Key terms",
+      "subtitle": null,
+      "titleNote": null,
+      "minutes": 1,
+      "lessonLink": "Lesson 2, Slide 2 (terms named) and Lesson 1, Slide 19 (seek + rotational latency mentioned together)",
+      "visual": "A simple three-box flow: Seek -> Rotate/Search -> Transfer -> Data Ready",
+      "figure": "flow",
+      "steps": [
+        {
+          "lead": "Access time",
+          "body": "Total time from an I/O request to the moment the first byte of data is available",
+          "cites": ["Weiss, n.d.", "Stanford University, n.d."],
+          "cue": "terms-access"
+        },
+        {
+          "lead": "Seek time",
+          "body": "Time to move the read/write head (or arm) to the correct track or cylinder",
+          "cites": ["Stanford University, n.d."],
+          "cue": "terms-seek"
+        },
+        {
+          "lead": "Rotational latency (\"search time\")",
+          "body": "Wait for the target sector to spin under the head once the head is on the right track. Lesson 2's own objective list calls this \"search time\" (Lesson 2, Slide 2, item 4). This fact sheet treats the two names as the same thing",
+          "cites": [],
+          "cue": "terms-rotate"
+        },
+        {
+          "lead": "Transfer time",
+          "body": "Time to actually move the requested bits once the head is in position",
+          "cites": ["Stanford University, n.d."],
+          "cue": "terms-transfer"
+        },
+        {
+          "lead": "Formula",
+          "body": "Access time = seek time + rotational latency (search time) + transfer time",
+          "note": "Stated in words: no slide computation exists to copy.",
+          "cites": ["Weiss, n.d.", "Stanford University, n.d."],
+          "cue": "terms-formula"
+        },
+        {
+          "lead": "Sequential vs. direct (random) access",
+          "body": "Sequential media must pass over every record in order. Direct-access media can jump straight to an address",
+          "cites": ["Lesson 2, Slides 14 to 21"],
+          "cue": "terms-sequential"
+        },
+        {
+          "lead": "IOPS",
+          "body": "Input/output operations completed per second, the standard way flash and solid-state devices are rated instead of seek time",
+          "cites": ["NVM Express, n.d."],
+          "cue": "terms-iops"
+        }
+      ]
+    },
+    {
+      "id": "hierarchy",
+      "number": 3,
+      "shortTitle": "Hierarchy",
+      "title": "The storage hierarchy and why it exists",
+      "subtitle": null,
+      "titleNote": null,
+      "minutes": 1.5,
+      "lessonLink": "Lesson 1, Slide 5 and Lesson 2, Slide 1",
+      "visual": "A pyramid or stepped bar chart: Registers/Cache -> RAM -> SSD -> HDD -> Optical/Tape, width = capacity, height = speed",
+      "figure": null,
+      "steps": [
+        {
+          "lead": "Lesson 1's recap table",
+          "body": "Primary/Main Memory (RAM, Cache) = Very Fast, Small, Volatile. Secondary/Persistent (HDD, SSD, USB) = Medium, Large, Non-volatile. Tertiary (Tape, Optical Archive) = Slow, Very Large, Non-volatile",
+          "cites": ["Lesson 1, Slide 5"],
+          "cue": "hier-recap",
+          "figure": "recap"
+        },
+        {
+          "lead": "The general rule",
+          "body": "The higher a device sits in the hierarchy, the higher its cost per bit, the faster its access time, and the smaller its capacity",
+          "cites": ["Simon Fraser University, n.d."],
+          "cue": "hier-rule"
+        },
+        {
+          "lead": "The classic ordering",
+          "body": "Registers, then L1/L2 cache, then main memory, then disk cache, then disk, then optical, then tape, comes from standard computer-architecture teaching material, not from either lesson file",
+          "cites": ["Nayda, n.d."],
+          "cue": "hier-order"
+        },
+        {
+          "lead": "A trade-off, not an accident",
+          "body": "No single technology is simultaneously the fastest, the cheapest, and the largest, so real systems stack several tiers and let the OS and hardware move data between them",
+          "cites": [],
+          "cue": "hier-tradeoff"
+        },
+        {
+          "lead": "The historical layer",
+          "body": "Sequential-access devices (paper, tape) and direct-access devices (magnetic disk, optical) evolved as separate branches",
+          "cites": ["Lesson 2, Slide 1"],
+          "cue": "hier-branches"
+        },
+        {
+          "lead": "Note",
+          "body": "Lesson 1's table places HDD, SSD, and USB flash in one \"Medium\" bucket. Section H explains why this fact sheet splits them apart: HDD access time (milliseconds) and SSD access time (tens to low hundreds of microseconds) differ by roughly 1,000 times",
+          "cites": ["University of Washington, 2023", "Seagate Technology, 2019"],
+          "cue": "hier-note"
+        }
+      ]
+    },
+    {
+      "id": "nanoseconds",
+      "number": 4,
+      "shortTitle": "Nanoseconds",
+      "title": "Registers, cache, and RAM",
+      "subtitle": "The nanosecond tier",
+      "titleNote": null,
+      "minutes": 1,
+      "lessonLink": "Lesson 1, Slide 5 (RAM/Cache = \"Very Fast\")",
+      "visual": "Bar chart on a log scale, registers through DRAM, all under 100 ns",
+      "figure": "nanobars",
+      "steps": [
+        {
+          "lead": "CPU registers",
+          "body": "On the order of tens of picoseconds, effectively the same clock cycle as the instruction using them",
+          "cites": ["Massachusetts Institute of Technology, n.d."],
+          "cue": "nano-register"
+        },
+        {
+          "lead": "L1 cache",
+          "body": "About 1 nanosecond (roughly 4 CPU cycles)",
+          "cites": ["ScienceDirect Topics, n.d."],
+          "cue": "nano-l1"
+        },
+        {
+          "lead": "L2 cache",
+          "body": "About 3 nanoseconds (roughly 12 cycles)",
+          "cites": ["ScienceDirect Topics, n.d."],
+          "cue": "nano-l2"
+        },
+        {
+          "lead": "L3 cache",
+          "body": "About 12 nanoseconds (roughly 26 cycles on average)",
+          "cites": ["ScienceDirect Topics, n.d."],
+          "cue": "nano-l3"
+        },
+        {
+          "lead": "Main memory (DRAM)",
+          "body": "Roughly 30 to 100 nanoseconds per random access, ten to a hundred times slower than L1 cache",
+          "cites": ["ScienceDirect Topics, n.d."],
+          "cue": "nano-dram"
+        },
+        {
+          "lead": "All volatile",
+          "body": "All of these are volatile: contents are lost the instant power is cut",
+          "cites": ["Lesson 1, Slide 5"],
+          "cue": "nano-volatile",
+          "figure": "power"
+        },
+        {
+          "lead": "Why so fast",
+          "body": "Pure electrical switching on or right next to the CPU die, no mechanical motion and no removable media involved",
+          "cites": [],
+          "cue": "nano-why"
+        }
+      ]
+    },
+    {
+      "id": "hard-disks",
+      "number": 5,
+      "shortTitle": "Hard disks",
+      "title": "Hard disk access time",
+      "subtitle": "The millisecond tier",
+      "titleNote": null,
+      "minutes": 1.5,
+      "lessonLink": "Lesson 1, Slides 19 and 20",
+      "visual": "Cutaway diagram of a platter and arm, labeling seek path and rotation arc",
+      "figure": null,
+      "steps": [
+        {
+          "lead": "Mechanical",
+          "body": "A hard disk is mechanical: a spinning platter plus a moving arm, so every access pays a physical penalty",
+          "cites": ["Lesson 1, Slide 19"],
+          "cue": "hdd-mechanical"
+        },
+        {
+          "lead": "Seek time",
+          "body": "Average seek time on desktop-class drives: about 3 to 12 ms, 9 ms is a commonly cited typical figure",
+          "cites": ["Weiss, n.d."],
+          "cue": "hdd-seek"
+        },
+        {
+          "lead": "Rotational latency",
+          "body": "Depends on spindle speed. Average latency = half of one full rotation, rotation time = 60 / RPM in seconds",
+          "cites": ["Weiss, n.d.", "Stanford University, n.d."],
+          "cue": "hdd-rotation"
+        },
+        {
+          "lead": "Worked figures",
+          "body": "Calculated from that formula, not from the lesson slides: 5,400 RPM is about 5.6 ms average, 7,200 RPM is about 4.16 ms average as measured on a real drive (Seagate Technology, 2019), 15,000 RPM is about 2.0 ms average as rated by the manufacturer (Seagate Technology, 2015)",
+          "cites": [],
+          "cue": "hdd-rpm",
+          "figure": "rpm"
+        },
+        {
+          "lead": "Total access time",
+          "body": "Put together, total average access time runs from about 5 ms on a fast drive to about 15 to 16 ms on a slow 5,400 RPM drive",
+          "cites": ["Weiss, n.d.", "Stanford University, n.d."],
+          "cue": "hdd-total"
+        },
+        {
+          "lead": "Why disk scheduling exists",
+          "body": "This mechanical penalty is exactly why disk scheduling algorithms (FCFS, SSTF, SCAN) exist: they reorder requests to cut down the arm's total travel",
+          "cites": ["Lesson 1, Slide 20"],
+          "cue": "hdd-scheduling"
+        }
+      ]
+    },
+    {
+      "id": "ssds",
+      "number": 6,
+      "shortTitle": "SSDs",
+      "title": "SSD access time: SATA vs. NVMe",
+      "subtitle": "The microsecond tier",
+      "titleNote": null,
+      "minutes": 1.5,
+      "lessonLink": "Lesson 1, Slide 19 (\"no moving parts... faster but more expensive per GB\")",
+      "visual": "Side-by-side bar: SATA (32-command queue) vs. NVMe (64K-command queue), with the IOPS ceiling for each",
+      "figure": null,
+      "steps": [
+        {
+          "lead": "No moving parts",
+          "body": "Flash-based SSDs have no moving parts, so there is no seek time or rotational latency to wait for",
+          "cites": ["Lesson 1, Slide 19"],
+          "cue": "ssd-nomoving"
+        },
+        {
+          "lead": "Raw NAND read",
+          "body": "At the raw NAND chip level, a page read takes on the order of 10 microseconds, roughly a thousand times faster than the HDD figures on the previous slide",
+          "cites": ["University of Washington, 2023"],
+          "cue": "ssd-nand"
+        },
+        {
+          "lead": "Interface matters",
+          "body": "Interface matters more than the memory chips once mechanical delay is gone. SATA SSDs use the older AHCI protocol, capped at about 200,000 IOPS with one queue of 32 commands. NVMe SSDs use a streamlined protocol built for flash, already demonstrated past 1,000,000 IOPS, with up to 64,000 queues of 64,000 commands each",
+          "cites": ["NVM Express, n.d."],
+          "cue": "ssd-interface",
+          "figure": "queues"
+        },
+        {
+          "lead": "Same chips, different numbers",
+          "body": "That protocol gap is why two SSDs with the same NAND chips can post very different real-world numbers: a current NVMe drive is rated for sequential reads around 7,450 MB/s (Samsung Electronics, 2023), well beyond what the SATA interface itself can carry",
+          "cites": [],
+          "cue": "ssd-protocol"
+        },
+        {
+          "lead": "Trade-off",
+          "body": "SSDs cost more per GB than HDDs",
+          "cites": ["Lesson 1, Slide 19"],
+          "cue": "ssd-cost"
+        },
+        {
+          "lead": "Note",
+          "body": "Neither lesson file gives an exact microsecond figure for a finished SSD. The figures above come from the underlying NAND chip speed and the standards body's own protocol comparison, not from a single \"SSD access time\" spec sheet, because SSD vendors publish IOPS and MB/s instead",
+          "cites": [],
+          "cue": "ssd-note"
+        }
+      ]
+    },
+    {
+      "id": "removable",
+      "number": 7,
+      "shortTitle": "Flash, optical, tape",
+      "title": "Flash drives, optical discs, and magnetic tape",
+      "subtitle": null,
+      "titleNote": null,
+      "minutes": 1,
+      "lessonLink": "Lesson 1, Slide 5 (Tertiary = Tape, Optical Archive = Slow) and Lesson 2, Slide 38 (removable backup-device activity)",
+      "visual": "Timeline bar for tape: mount -> load -> locate -> stream, showing where the 10-100 second wait sits before data ever moves",
+      "figure": null,
+      "steps": [
+        {
+          "lead": "USB flash drives and SD cards",
+          "body": "USB flash drives and SD/microSD cards use the same NAND flash principle as SSDs, but usually with simpler, cheaper controllers and a slower bus, so real-world access is slower than an internal SSD even though the underlying memory is similar",
+          "cites": ["Kingston Technology, n.d."],
+          "cue": "arch-usb"
+        },
+        {
+          "lead": "Optical discs",
+          "body": "Optical discs (CD, DVD, Blu-ray) read with a laser following a spiral track from the center outward, instead of the concentric tracks a hard disk uses. Moving the laser a long distance across that spiral is slow and its access time varies a lot depending on where the data sits, so drive makers publish read speed (\"16x\") rather than one access-time number. Published academic material puts it roughly two orders of magnitude behind a hard disk",
+          "cites": [],
+          "cue": "arch-optical"
+        },
+        {
+          "lead": "Magnetic tape (LTO-9)",
+          "body": "Built for sequential throughput, not quick access: native transfer rate is 400 MB/s, 1,000 MB/s compressed (LTO Program, n.d.), but finding one specific file means a robotic mount (4 to 10 seconds), a drive load (about 11 seconds), and then locating the file on the tape (10 to 100 seconds) (Moore, 2020)",
+          "cites": [],
+          "cue": "arch-tape",
+          "figure": "tape"
+        },
+        {
+          "lead": "Why tape is still bought",
+          "body": "Once the tape is positioned, it streams data faster than most hard disks (360 to 400 MB/s vs. 160 to 220 MB/s), it costs very little per GB, and it can be removed and stored off-site (Moore, 2020). Lesson 2, Slide 38's own activity asks students to research exactly this kind of removable backup device",
+          "cites": [],
+          "cue": "arch-why"
+        }
+      ]
+    },
+    {
+      "id": "master",
+      "number": 8,
+      "shortTitle": "Master table",
+      "title": "Master comparison",
+      "subtitle": null,
+      "titleNote": null,
+      "minutes": 0.5,
+      "lessonLink": "Synthesizes Lesson 1, Slide 5 and every device slide above",
+      "visual": "The Section D table itself, projected in full",
+      "figure": "table",
+      "steps": [
+        {
+          "lead": "Fastest to slowest",
+          "body": "Walk the class from fastest (registers) to slowest (tape): the table spans roughly 13 orders of magnitude, tens of picoseconds to over a minute",
+          "cites": [],
+          "cue": "master-walk"
+        },
+        {
+          "lead": "Cost runs the other way",
+          "body": "Cost per GB moves in the opposite direction: the fastest tiers are the most expensive per byte, the slowest are the cheapest",
+          "cites": [],
+          "cue": "master-cost"
+        }
+      ]
+    },
+    {
+      "id": "human-scale",
+      "number": 9,
+      "shortTitle": "Human scale",
+      "title": "If 1 nanosecond were 1 second",
+      "subtitle": null,
+      "titleNote": null,
+      "minutes": 1,
+      "lessonLink": "Illustrates the same devices as Slides 3 to 7, no new lesson content",
+      "visual": "A horizontal timeline from \"1 second\" to \"1,744 years,\" with device icons placed along it",
+      "figure": "human",
+      "steps": [
+        {
+          "lead": "The rule",
+          "body": "Pretend 1 nanosecond of real computer time equals 1 second of human time. The full table and math are in Section E",
+          "cites": [],
+          "cue": "human-rule"
+        },
+        {
+          "lead": "Headline comparison",
+          "body": "On that scale, an L1 cache hit takes about 1 second, a 7,200 RPM hard disk access takes about 108 days, and locating one file on tape takes roughly 1,744 years",
+          "cites": [],
+          "cue": "human-headline"
+        },
+        {
+          "lead": "The point",
+          "body": "The difference between \"fast\" and \"slow\" storage is not a small percentage, it is many orders of magnitude, which is the entire reason operating systems go to so much trouble (caching, buffering, scheduling) to hide slow devices from the user",
+          "cites": [],
+          "cue": "human-point"
+        }
+      ]
+    },
+    {
+      "id": "takeaways",
+      "number": 10,
+      "shortTitle": "Takeaways",
+      "title": "Key takeaways",
+      "subtitle": null,
+      "titleNote": null,
+      "minutes": 0.5,
+      "lessonLink": "Lesson 1, Slide 22 (\"Disk Scheduling optimizes mechanical HDD performance\" and \"SSDs change the rules\")",
+      "visual": "Recap pyramid from Slide 3, now labeled with real numbers from Section D",
+      "figure": null,
+      "steps": [
+        {
+          "lead": "The formula",
+          "body": "Access time = seek time + rotational latency (search time) + transfer time. Mechanical devices pay for all three, electronic devices barely pay for the first two",
+          "cites": ["Weiss, n.d.", "Lesson 1, Slide 19"],
+          "cue": "sum-formula"
+        },
+        {
+          "lead": "The trade-off",
+          "body": "Speed, cost per GB, and capacity always trade off against each other. That trade-off is why every real system uses several storage tiers instead of one",
+          "cites": ["Simon Fraser University, n.d.", "Lesson 1, Slide 5"],
+          "cue": "sum-tradeoff"
+        },
+        {
+          "lead": "The two big jumps",
+          "body": "Removing moving parts (HDD to SSD) buys roughly 1,000 times faster access. Removing protocol overhead on top of that (SATA to NVMe) buys another large jump in throughput",
+          "cites": ["University of Washington, 2023", "NVM Express, n.d."],
+          "cue": "sum-jumps"
+        },
+        {
+          "lead": "Tape has not disappeared",
+          "body": "Slow, cheap, removable media like tape has not disappeared. It is still the right tool when the job is bulk backup and off-site archiving rather than quick access",
+          "cites": ["Moore, 2020"],
+          "cue": "sum-tape"
+        }
+      ]
+    }
+  ]
+}

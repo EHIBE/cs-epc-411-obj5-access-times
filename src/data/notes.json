@@ -1,0 +1,116 @@
+{
+  "meta": {
+    "heading": "Objective #5: Differences in Access Times in Several Types of Devices",
+    "course": "Operating Systems, Storage Management (Device Management unit)",
+    "objective": "Objective #5",
+    "objectiveQuote": "Differences in access times in several types of devices",
+    "objectiveSource": "Lesson 2, Slide 2, item 5",
+    "related": "#4, \"Roles of seek time, search time, and transfer time in calculating access time\" (Lesson 2, Slide 2, item 4)",
+    "totalTime": "10 minutes or less",
+    "totalSlides": 10
+  },
+  "assumptions": {
+    "section": "A",
+    "title": "Assumptions",
+    "items": [
+      "The two source files use two different objective lists. Lesson 1 (\"Storage Management in Operating Systems,\" LESSON - STORAGE MANAGEMENT.pptx) has its own 5-item list, and its own item 5 is \"Describe disk scheduling and performance basics,\" a different topic. The objective this fact sheet answers, \"Differences in access times in several types of devices,\" is item 5 of Lesson 2's list (\"Device Management,\" LESSON - STORAGE MANAGEMENT2.pptx, Slide 2). Lesson 1 is still used below because it is the only one of the two files that contains real hardware access-time content.",
+      "Neither lesson file contains an explicit numeric access-time formula or worked computation. Per the brief, Section F below says so plainly instead of inventing one. The formula itself (access time = seek time + rotational latency + transfer time) is still explained in words on Slide 5, sourced to outside academic material, because Objective #4 requires the terms and Objective #5 cannot be explained without them.",
+      "Lesson 2's Objective #4 uses the term \"search time.\" The academic sources located for this fact sheet (Weiss, n.d.) (Stanford University, n.d.) call the same component \"rotational latency\" or \"rotational delay.\" Both names describe the same wait for the target sector to rotate under the read/write head. This fact sheet treats them as synonyms and says so on Slide 2, rather than silently picking one.",
+      "No vendor datasheet located during research publishes a single official \"access time\" figure for CD/DVD/Blu-ray drives (manufacturers publish data-transfer speed ratings like \"16x\" instead). The figure used for optical discs is a order-of-magnitude range drawn from academic course material, flagged as an estimate rather than a hard spec.",
+      "Intel Optane is described only by its position in the hierarchy and its 2022 discontinuation, not by an invented precise latency number, because no source in the allowed list (textbooks, vendor datasheets, standards bodies, .edu notes) published one during this research pass.",
+      "Device coverage goes beyond what either slide deck lists by name (registers, cache levels, the NVMe/SATA split, USB/SD flash, optical, tape, and network/cloud storage), per the brief's instruction to cover every device type useful to the class while keeping the deck presentable in 10 slides and 10 minutes.",
+      "Per-slide time allocations (Section C) are a suggested pace to fit the 10-minute cap. Adjust to the presenter's actual speaking speed.",
+      "Sequential/Direct/Index Sequential file access methods (Lesson 2, Slides 15 to 27) are software-level techniques for reading records inside a file, not hardware access time. They are referenced only where they explain why some access patterns are faster than others (for example, Slide 22's \"decreasing the average access time\"), per the hard rule to stay inside Objective #5."
+    ]
+  },
+  "sourceMap": {
+    "section": "B",
+    "title": "Lesson Source Map",
+    "rows": [
+      {
+        "slide": "Slide 1",
+        "deck": "Lesson 2",
+        "says": "Title-slide diagram: Sequential Access branches to Paper Storage Media and Magnetic Tape Storage Media. Direct Access branches to Magnetic Disk Storage Media and Optical Disc Storage",
+        "supports": "Shows, at a glance, that a device's access method (sequential vs. direct) is historically tied to its physical medium, which is the root cause of the access-time differences this objective covers"
+      },
+      {
+        "slide": "Slide 2",
+        "deck": "Lesson 2",
+        "says": "Learning Objectives list. Item 4: \"Roles of seek time, search time, and transfer time in calculating access time.\" Item 5 (quoted exactly): \"Differences in access times in several types of devices\"",
+        "supports": "Item 5 is the objective this fact sheet answers, quoted verbatim. Item 4 supplies the vocabulary needed to explain it"
+      },
+      {
+        "slide": "Slide 14",
+        "deck": "Lesson 2",
+        "says": "\"Storage media are divided into two groups: sequential access media... and direct access storage devices (DASD)... There are vast differences in their speed and shareability\"",
+        "supports": "The most direct textual anchor in Lesson 2 itself for \"differences in access times across device types\""
+      },
+      {
+        "slide": "Slides 17 to 27",
+        "deck": "Lesson 2",
+        "says": "Sequential, Direct, and Index Sequential file access methods, each with a block diagram",
+        "supports": "Background on access patterns. Slide 22 explicitly ties direct access to \"decreasing the average access time,\" and Slide 26 ties indexing to \"Reduced Access Time\""
+      },
+      {
+        "slide": "Slide 38",
+        "deck": "Lesson 2",
+        "says": "Individual research activity: find two of the fastest removable backup devices available today and cite benchmarks",
+        "supports": "Confirms this course's pattern of assigning device-speed research as student presentation work, the same genre as this objective's activity"
+      },
+      {
+        "slide": "Slide 5",
+        "deck": "Lesson 1",
+        "says": "Storage Hierarchy (RECAP) table: Primary/Main Memory (RAM, Cache) = Very Fast, Small, Volatile. Secondary/Persistent (HDD, SSD, USB) = Medium, Large, Non-volatile. Tertiary (Tape, Optical Archive) = Slow, Very Large, Non-volatile",
+        "supports": "The direct primary-source backbone for the whole device speed comparison. Used as the skeleton for Section D below"
+      },
+      {
+        "slide": "Slide 19",
+        "deck": "Lesson 1",
+        "says": "\"HDD VS SSD\": HDD (mechanical) = seek time + rotational latency = slower, affects scheduling. SSD (flash) = no moving parts, near-zero seek time, faster but costlier per GB",
+        "supports": "The most direct hardware explanation available in either file for why access times differ. Primary anchor for Slides 5 and 6 below"
+      },
+      {
+        "slide": "Slide 20",
+        "deck": "Lesson 1",
+        "says": "Disk scheduling algorithms: FCFS, SSTF, SCAN/Elevator",
+        "supports": "One-line relevance only: these algorithms exist because seek time dominates HDD access time"
+      },
+      {
+        "slide": "Slide 21",
+        "deck": "Lesson 1",
+        "says": "Fragmentation and defragmentation. SSDs do not need defragmentation because they have no moving parts",
+        "supports": "Minor supporting fact for the HDD-vs-SSD mechanical difference"
+      },
+      {
+        "slide": "Slide 22",
+        "deck": "Lesson 1",
+        "says": "Summary: \"Disk Scheduling optimizes mechanical HDD performance\" and \"SSDs change the rules\"",
+        "supports": "Reinforces the core takeaway of this objective"
+      }
+    ]
+  },
+  "workedExample": {
+    "section": "F",
+    "title": "Worked Example",
+    "text": "Not included. Neither lesson file contains a worked access-time computation using real numbers, only the qualitative statement on Lesson 1, Slide 19 that HDD access time equals \"seek time + rotational latency.\" Per the brief, no numeric example was invented to fill that gap. The formula itself is explained in words on Slide 5 above (Weiss, n.d.) (Stanford University, n.d.), and the RPM-based rotational-latency figures on that slide were calculated directly from the standard formula (rotation time = 60 / RPM, average latency = half of that), not copied from either deck."
+  },
+  "discrepancies": {
+    "section": "H",
+    "title": "Discrepancy Log",
+    "rows": [
+      {
+        "slide": "Lesson 1, Slide 5",
+        "slideSays": "Groups HDD, SSD, and USB flash together in one \"Medium\" speed tier",
+        "sourceSays": "HDD access time (milliseconds) and SSD access time (tens to low hundreds of microseconds) differ by roughly 1,000 times. They are not the same speed tier",
+        "source": "University of Washington, 2023 / Seagate Technology, 2019"
+      },
+      {
+        "slide": "Lesson 1, Slide 19",
+        "slideSays": "States SSD has \"near-zero seek time\"",
+        "sourceSays": "Directionally correct (no mechanical seek exists), but not literally zero. A finished SSD still takes on the order of tens of microseconds per access",
+        "source": "University of Washington, 2023 / NVM Express, n.d."
+      }
+    ],
+    "note": "Both entries are simplifications appropriate to Lesson 1's own recap-level scope, not errors. They are flagged here, per the brief, rather than corrected silently on the slides themselves."
+  }
+}

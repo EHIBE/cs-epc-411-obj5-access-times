@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="An interactive 3D presentation of Objective #5: differences in access times in several types of devices, from CPU registers to magnetic tape." />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <title>Access times: registers to tape</title>
+  </head>
+  <body>
+    <!--
+      THESIS: Access time is depth. Each of Section D's 16 devices floats as a stratum at its true log depth, so 13 orders of magnitude read as physical distance. Refuses the neon pyramid of equal glowing steps.
+      OWN-WORLD: Survey-paper ground, an ink depth column engraved like a slide rule, satin anodized strata from surface cyan through green and ochre to rust bedrock, one hairline weight throughout, Archivo set wide for readings and narrow for labels.
+      STORY: The class descends from registers to tape one keypress at a time, sees each mechanism excavated beside its layer, and feels the gap when the probe turns 1 ns into 1 second and tape into 1,744 years.
+      FIRST VIEWPORT: Left third: the objective quoted large; right: floating strata beside the depth column with callouts; bottom: a rail sized by planned minutes; top right: the human-time switch. Primary action: Next, or the arrow key.
+      FORM: Stratigraphic section, candidate 4 of 7, seed 4dd495f8.
+      FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+    -->
+    <div id="stage" aria-hidden="true">
+      <canvas id="scene"></canvas>
+    </div>
+    <div id="labels" class="label-layer" aria-hidden="true"></div>
+    <svg id="leaders" class="leader-layer" aria-hidden="true"></svg>
+
+    <p id="caption" class="view-caption" data-visible="false" aria-live="polite"></p>
+
+    <section id="fallback" class="stage-fallback" hidden aria-labelledby="fallback-title">
+      <h2 id="fallback-title">The 3D model could not start here</h2>
+      <p id="fallback-reason">This browser or graphics driver did not provide WebGL.</p>
+      <p>The slides, the master table, every device's details and the questions all still work.</p>
+    </section>
+
+    <header id="topbar"></header>
+
+    <div id="left" data-hidden="false" data-wide="false">
+      <main id="deck" tabindex="-1" aria-live="off"></main>
+      <section id="legend" aria-label="Color legend"></section>
+    </div>
+
+    <aside id="spec" class="spec panel" inert></aside>
+    <div id="hint" class="panel"></div>
+    <nav id="rail" aria-label="Slides and presenter clock"></nav>
+
+    <dialog id="drawer"></dialog>
+    <dialog id="table-dialog"></dialog>
+    <dialog id="help"></dialog>
+
+    <div id="toast" class="toast-shell"></div>
+    <div id="announcer" class="sr-only"></div>
+    <div id="blackout" class="blackout" data-on="false" aria-hidden="true"></div>
+
+    <div id="boot" class="boot-screen" role="status">
+      <div class="boot-inner">
+        <p class="boot-title">Access times</p>
+        <p class="boot-sub">Calibrating the depth column</p>
+        <span class="boot-track"><span class="boot__line"></span></span>
+      </div>
+    </div>
+
+    <noscript>
+      <p class="noscript">This presentation needs JavaScript. The full content is in docs/fact-sheet.md.</p>
+    </noscript>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

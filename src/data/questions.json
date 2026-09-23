@@ -1,0 +1,66 @@
+{
+  "section": "G",
+  "title": "Likely Questions and Answers",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Why is an SSD faster than an HDD if both are called \"secondary storage\"?",
+      "answer": "\"Secondary storage\" only describes where a device sits in the hierarchy (non-volatile, larger than RAM), not how it works internally. An HDD is mechanical and pays seek time and rotational latency on every access. An SSD has no moving parts, so it skips both (Lesson 1, Slide 19) (University of Washington, 2023)."
+    },
+    {
+      "id": 2,
+      "question": "Why not build all storage out of the fastest memory (registers or cache)?",
+      "answer": "Cost and physical size. The fastest tiers are also the most expensive per bit and the hardest to make large, which is exactly the trade-off the storage hierarchy is built around (Simon Fraser University, n.d.) (Lesson 1, Slide 5)."
+    },
+    {
+      "id": 3,
+      "question": "What is the difference between access time and transfer rate?",
+      "answer": "Access time is how long it takes to *start* getting data (positioning the head and reaching the right spot). Transfer rate is how fast data moves *once* the device is already in position. A device can have a short access time but a modest transfer rate, or the reverse, tape is the clearest example: slow to locate a file, but very fast once it is streaming (Stanford University, n.d.) (Moore, 2020)."
+    },
+    {
+      "id": 4,
+      "question": "Why is RAM volatile?",
+      "answer": "DRAM stores each bit as a charge on a tiny capacitor that needs continuous power (and constant refreshing) to hold its value. Cut the power and the charge drains away, which is what \"volatile\" means (Lesson 1, Slide 5)."
+    },
+    {
+      "id": 5,
+      "question": "Why is tape still used today if it is so much slower?",
+      "answer": "Tape is slow to locate a specific file but very fast once streaming, extremely cheap per GB, and it can be physically removed and stored off-site, which protects data from a fire, flood, or ransomware attack that could reach an always-connected disk. That is exactly what Lesson 2's own individual research activity (Slide 38) asks students to investigate (Moore, 2020) (Lesson 2, Slide 38)."
+    },
+    {
+      "id": 6,
+      "question": "How does the OS hide slow device access from the user?",
+      "answer": "Mainly through caching and buffering, keeping recently or soon-to-be-needed data in faster memory so the program rarely has to wait on the slowest device directly. That is a different learning objective (I/O subsystem and buffering, Lesson 2, Slide 2, items 3 and 6), so this fact sheet only flags the connection."
+    },
+    {
+      "id": 7,
+      "question": "Does NVMe vs. SATA matter if both are SSDs?",
+      "answer": "Yes. Both can use the same NAND flash chips, but SATA is limited by the older AHCI protocol (about 200,000 IOPS, one queue of 32 commands) while NVMe was designed for flash from the start (over 1,000,000 IOPS demonstrated, up to 64,000 queues of 64,000 commands each). The interface, not just the memory chip, sets the ceiling (NVM Express, n.d.)."
+    },
+    {
+      "id": 8,
+      "question": "What is the difference between \"seek time\" and \"search time\"? Aren't they the same thing?",
+      "answer": "In this course's own objective list they are listed as two of the three components of access time. The academic sources used for this fact sheet call the same second component \"rotational latency\" rather than \"search time.\" Different textbooks use different names for it, but it is the same wait: the disk spinning until the right sector arrives under the head (Weiss, n.d.) (Stanford University, n.d.)."
+    },
+    {
+      "id": 9,
+      "question": "Why does a 15,000 RPM drive have lower latency than a 5,400 RPM drive?",
+      "answer": "Rotational latency is on average half of one full rotation, and rotation time equals 60 divided by RPM. A faster spindle completes a rotation in less time, so the average wait for the right sector is shorter, about 2.0 ms at 15,000 RPM versus about 5.6 ms at 5,400 RPM (Seagate Technology, 2015) (Weiss, n.d.)."
+    },
+    {
+      "id": 10,
+      "question": "Why is optical disc access time so much slower and so inconsistent compared to a hard disk?",
+      "answer": "An optical disc is read as one continuous spiral track from the center outward, rather than the concentric, independently addressable tracks a hard disk uses. Jumping to an arbitrary point on that spiral takes the laser much longer than moving a magnetic head a similar logical distance, and how far it has to jump varies a lot depending on where on the disc the data sits (Lesson 2, Slide 1's sequential/direct diagram places optical discs on the direct-access side, but mechanically closer to sequential media in practice)."
+    },
+    {
+      "id": 11,
+      "question": "What does \"random access\" versus \"sequential access\" mean for access time?",
+      "answer": "A sequential-access device (tape) must physically pass over every record between where it currently is and the one it needs. A direct/random-access device (disk, SSD, RAM) can jump straight to an address. That difference is the entire reason tape's access time (seconds) is so much worse than its throughput (very fast) would suggest (Lesson 2, Slides 14 and 21 to 22)."
+    },
+    {
+      "id": 12,
+      "question": "Is cloud storage part of this hierarchy, and how does its access time compare?",
+      "answer": "Yes, it sits at the slow end alongside or below tape and optical for a single request, but for a different reason: the delay is mostly network distance, not the storage device itself. A round trip to a nearby data center runs about 8 ms, while a round trip to a data center on the other side of the world can run past 270 ms (Microsoft Corporation, 2026)."
+    }
+  ]
+}

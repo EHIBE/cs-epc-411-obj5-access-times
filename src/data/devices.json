@@ -1,0 +1,790 @@
+{
+  "section": "D",
+  "title": "Master Comparison Table",
+  "note": "Sorted fastest to slowest. \"Order of Magnitude\" is the typical access time rounded to a power of ten for quick comparison.",
+  "devices": [
+    {
+      "id": "register",
+      "rank": 1,
+      "name": "CPU register",
+      "shortName": "Register",
+      "tier": "cpu",
+      "icon": "cpu",
+      "accessTime": 0.02,
+      "unit": "ns",
+      "accessText": "~0.02 to 0.1 ns",
+      "calloutText": "~0.02 to 0.1 ns",
+      "range": {
+        "min": 0.02,
+        "max": 0.1,
+        "unit": "ns",
+        "label": "range"
+      },
+      "band": null,
+      "orderOfMagnitude": {
+        "text": "10⁻¹⁰ s",
+        "from": -10,
+        "to": -10,
+        "approx": false
+      },
+      "dominantDelay": "Electrical switching inside the CPU core",
+      "volatile": true,
+      "cost": {
+        "text": "Not sold separately (part of CPU die)",
+        "rank": null
+      },
+      "capacity": {
+        "text": "A few hundred bytes per core",
+        "log10Bytes": [
+          2.3,
+          3
+        ],
+        "unlimited": false
+      },
+      "typicalUse": "Holding operands mid-instruction",
+      "source": "Massachusetts Institute of Technology, n.d.",
+      "referenceIds": [
+        "mit"
+      ],
+      "facts": [
+        "On the order of tens of picoseconds, effectively the same clock cycle as the instruction using them (Massachusetts Institute of Technology, n.d.)"
+      ],
+      "questionIds": [
+        2
+      ]
+    },
+    {
+      "id": "l1",
+      "rank": 2,
+      "name": "L1 cache",
+      "shortName": "L1",
+      "tier": "cpu",
+      "icon": "stack",
+      "accessTime": 1,
+      "unit": "ns",
+      "accessText": "~1 ns",
+      "calloutText": "~1 ns",
+      "range": null,
+      "band": null,
+      "orderOfMagnitude": {
+        "text": "10⁻⁹ s",
+        "from": -9,
+        "to": -9,
+        "approx": false
+      },
+      "dominantDelay": "On-die SRAM switching",
+      "volatile": true,
+      "cost": {
+        "text": "Extremely high",
+        "rank": 9
+      },
+      "capacity": {
+        "text": "32 to 128 KB per core",
+        "log10Bytes": [
+          4.505,
+          5.107
+        ],
+        "unlimited": false
+      },
+      "typicalUse": "CPU's most recently used data/instructions",
+      "source": "ScienceDirect Topics, n.d.",
+      "referenceIds": [
+        "sciencedirect"
+      ],
+      "facts": [
+        "About 1 nanosecond (roughly 4 CPU cycles) (ScienceDirect Topics, n.d.)"
+      ],
+      "questionIds": [
+        2
+      ]
+    },
+    {
+      "id": "l2",
+      "rank": 3,
+      "name": "L2 cache",
+      "shortName": "L2",
+      "tier": "cpu",
+      "icon": "stack",
+      "accessTime": 3,
+      "unit": "ns",
+      "accessText": "~3 ns",
+      "calloutText": "~3 ns",
+      "range": null,
+      "band": null,
+      "orderOfMagnitude": {
+        "text": "10⁻⁹ s",
+        "from": -9,
+        "to": -9,
+        "approx": false
+      },
+      "dominantDelay": "On-die SRAM switching, one step further from the core",
+      "volatile": true,
+      "cost": {
+        "text": "Very high",
+        "rank": 8
+      },
+      "capacity": {
+        "text": "256 KB to 2 MB per core",
+        "log10Bytes": [
+          5.408,
+          6.301
+        ],
+        "unlimited": false
+      },
+      "typicalUse": "Second-level CPU cache",
+      "source": "ScienceDirect Topics, n.d.",
+      "referenceIds": [
+        "sciencedirect"
+      ],
+      "facts": [
+        "About 3 nanoseconds (roughly 12 cycles) (ScienceDirect Topics, n.d.)"
+      ],
+      "questionIds": [
+        2
+      ]
+    },
+    {
+      "id": "l3",
+      "rank": 4,
+      "name": "L3 cache",
+      "shortName": "L3",
+      "tier": "cpu",
+      "icon": "stack",
+      "accessTime": 12,
+      "unit": "ns",
+      "accessText": "~12 ns",
+      "calloutText": "~12 ns",
+      "range": null,
+      "band": null,
+      "orderOfMagnitude": {
+        "text": "10⁻⁸ s",
+        "from": -8,
+        "to": -8,
+        "approx": false
+      },
+      "dominantDelay": "Shared on-die SRAM, longer wire distance",
+      "volatile": true,
+      "cost": {
+        "text": "High",
+        "rank": 7
+      },
+      "capacity": {
+        "text": "8 to 64 MB shared",
+        "log10Bytes": [
+          6.903,
+          7.806
+        ],
+        "unlimited": false
+      },
+      "typicalUse": "Last-level cache shared across cores",
+      "source": "ScienceDirect Topics, n.d.",
+      "referenceIds": [
+        "sciencedirect"
+      ],
+      "facts": [
+        "About 12 nanoseconds (roughly 26 cycles on average) (ScienceDirect Topics, n.d.)"
+      ],
+      "questionIds": [
+        2
+      ]
+    },
+    {
+      "id": "dram",
+      "rank": 5,
+      "name": "DRAM (main memory)",
+      "shortName": "DRAM",
+      "tier": "memory",
+      "icon": "memory",
+      "accessTime": 50,
+      "unit": "ns",
+      "accessText": "~30 to 100 ns",
+      "calloutText": "~30 to 100 ns",
+      "range": {
+        "min": 30,
+        "max": 100,
+        "unit": "ns",
+        "label": "range"
+      },
+      "band": null,
+      "orderOfMagnitude": {
+        "text": "10⁻⁸ s",
+        "from": -8,
+        "to": -8,
+        "approx": false
+      },
+      "dominantDelay": "Row activation and charge sensing in the memory cell",
+      "volatile": true,
+      "cost": {
+        "text": "Moderate to high",
+        "rank": 6
+      },
+      "capacity": {
+        "text": "8 to 128 GB (typical desktop/server)",
+        "log10Bytes": [
+          9.903,
+          11.107
+        ],
+        "unlimited": false
+      },
+      "typicalUse": "Running programs and their working data",
+      "source": "ScienceDirect Topics, n.d.",
+      "referenceIds": [
+        "sciencedirect"
+      ],
+      "facts": [
+        "Roughly 30 to 100 nanoseconds per random access, ten to a hundred times slower than L1 cache (ScienceDirect Topics, n.d.)"
+      ],
+      "questionIds": [
+        4,
+        6
+      ]
+    },
+    {
+      "id": "optane",
+      "rank": 6,
+      "name": "Byte-addressable NVM (e.g., Intel Optane)",
+      "shortName": "Optane",
+      "tier": "memory",
+      "icon": "memory",
+      "accessTime": null,
+      "unit": "s",
+      "accessText": "Between DRAM and NAND flash (no single published figure)",
+      "calloutText": "10⁻⁷ to 10⁻⁶ s (approx.)",
+      "range": null,
+      "band": {
+        "from": -7,
+        "to": -6,
+        "label": "order of magnitude"
+      },
+      "orderOfMagnitude": {
+        "text": "10⁻⁷ to 10⁻⁶ s (approx.)",
+        "from": -7,
+        "to": -6,
+        "approx": true
+      },
+      "dominantDelay": "Phase-change/resistive cell access, no block erase needed",
+      "volatile": false,
+      "cost": {
+        "text": "High (niche/legacy pricing)",
+        "rank": 7
+      },
+      "capacity": {
+        "text": "Up to a few hundred GB per module",
+        "log10Bytes": [
+          11,
+          11.7
+        ],
+        "unlimited": false
+      },
+      "typicalUse": "Persistent memory tier, cache for slower SSDs",
+      "source": "Product discontinued by Intel in 2022. Qualitative positioning only",
+      "referenceIds": [],
+      "facts": [
+        "Intel Optane is described only by its position in the hierarchy and its 2022 discontinuation, not by an invented precise latency number, because no source in the allowed list (textbooks, vendor datasheets, standards bodies, .edu notes) published one during this research pass."
+      ],
+      "questionIds": []
+    },
+    {
+      "id": "nand",
+      "rank": 7,
+      "name": "Raw NAND flash cell (component level)",
+      "shortName": "NAND cell",
+      "tier": "flash",
+      "icon": "circuitry",
+      "accessTime": 10,
+      "unit": "us",
+      "accessText": "~10 µs read, ~100 µs program",
+      "calloutText": "~10 µs read, ~100 µs program",
+      "range": {
+        "min": 10,
+        "max": 100,
+        "unit": "us",
+        "label": "read to program"
+      },
+      "band": null,
+      "orderOfMagnitude": {
+        "text": "10⁻⁵ to 10⁻⁴ s",
+        "from": -5,
+        "to": -4,
+        "approx": false
+      },
+      "dominantDelay": "Reading/charging the flash cell itself",
+      "volatile": false,
+      "cost": {
+        "text": "(component, not sold standalone)",
+        "rank": null
+      },
+      "capacity": {
+        "text": "N/A",
+        "log10Bytes": null,
+        "unlimited": false
+      },
+      "typicalUse": "Building block inside all flash-based storage",
+      "source": "University of Washington, 2023",
+      "referenceIds": [
+        "uw"
+      ],
+      "facts": [
+        "At the raw NAND chip level, a page read takes on the order of 10 microseconds, roughly a thousand times faster than the HDD figures (University of Washington, 2023)"
+      ],
+      "questionIds": [
+        1,
+        7
+      ]
+    },
+    {
+      "id": "nvme",
+      "rank": 8,
+      "name": "NVMe SSD",
+      "shortName": "NVMe SSD",
+      "tier": "flash",
+      "icon": "lightning",
+      "accessTime": 50,
+      "unit": "us",
+      "accessText": "Tens of microseconds, host-visible",
+      "calloutText": "tens of µs",
+      "range": null,
+      "band": null,
+      "orderOfMagnitude": {
+        "text": "10⁻⁵ s",
+        "from": -5,
+        "to": -5,
+        "approx": false
+      },
+      "dominantDelay": "NAND chip read plus a lightweight PCIe/NVMe protocol",
+      "volatile": false,
+      "cost": {
+        "text": "Moderate",
+        "rank": 5
+      },
+      "capacity": {
+        "text": "500 GB to 4+ TB (consumer), up to tens of TB (enterprise)",
+        "log10Bytes": [
+          11.699,
+          12.602
+        ],
+        "unlimited": false
+      },
+      "typicalUse": "OS/boot drives, high-performance storage",
+      "source": "University of Washington, 2023 / NVM Express, n.d. / Samsung Electronics, 2023",
+      "referenceIds": [
+        "uw",
+        "nvme",
+        "samsung"
+      ],
+      "facts": [
+        "NVMe SSDs use a streamlined protocol built for flash, already demonstrated past 1,000,000 IOPS, with up to 64,000 queues of 64,000 commands each (NVM Express, n.d.)",
+        "A current NVMe drive is rated for sequential reads around 7,450 MB/s (Samsung Electronics, 2023), well beyond what the SATA interface itself can carry"
+      ],
+      "questionIds": [
+        7,
+        1
+      ]
+    },
+    {
+      "id": "sata",
+      "rank": 9,
+      "name": "SATA SSD",
+      "shortName": "SATA SSD",
+      "tier": "flash",
+      "icon": "hard-drives",
+      "accessTime": 200,
+      "unit": "us",
+      "accessText": "Tens to a few hundred microseconds, host-visible",
+      "calloutText": "tens to a few hundred µs",
+      "range": null,
+      "band": null,
+      "orderOfMagnitude": {
+        "text": "10⁻⁴ s",
+        "from": -4,
+        "to": -4,
+        "approx": false
+      },
+      "dominantDelay": "Same NAND chip plus the older, heavier AHCI/SATA protocol",
+      "volatile": false,
+      "cost": {
+        "text": "Low to moderate",
+        "rank": 4
+      },
+      "capacity": {
+        "text": "250 GB to 4 TB",
+        "log10Bytes": [
+          11.398,
+          12.602
+        ],
+        "unlimited": false
+      },
+      "typicalUse": "Budget and older-system upgrades",
+      "source": "NVM Express, n.d. / University of Washington, 2023",
+      "referenceIds": [
+        "nvme",
+        "uw"
+      ],
+      "facts": [
+        "SATA SSDs use the older AHCI protocol, capped at about 200,000 IOPS with one queue of 32 commands (NVM Express, n.d.)"
+      ],
+      "questionIds": [
+        7,
+        1
+      ]
+    },
+    {
+      "id": "usb",
+      "rank": 10,
+      "name": "USB flash drive / SD card",
+      "shortName": "USB / SD",
+      "tier": "flash",
+      "icon": "usb",
+      "accessTime": null,
+      "unit": "s",
+      "accessText": "Similar order to SSD flash, often slower in practice",
+      "calloutText": "10⁻⁴ s (approx.)",
+      "range": null,
+      "band": {
+        "from": -4,
+        "to": -3,
+        "label": "order of magnitude"
+      },
+      "orderOfMagnitude": {
+        "text": "10⁻⁴ s (approx.)",
+        "from": -4,
+        "to": -4,
+        "approx": true
+      },
+      "dominantDelay": "NAND cell plus a simpler controller and USB/SD bus overhead",
+      "volatile": false,
+      "cost": {
+        "text": "Low",
+        "rank": 3
+      },
+      "capacity": {
+        "text": "32 GB to 1 TB+",
+        "log10Bytes": [
+          10.505,
+          12
+        ],
+        "unlimited": false
+      },
+      "typicalUse": "Portable transfer, cameras, backup",
+      "source": "Kingston Technology, n.d.",
+      "referenceIds": [
+        "kingston"
+      ],
+      "facts": [
+        "USB flash drives and SD/microSD cards use the same NAND flash principle as SSDs, but usually with simpler, cheaper controllers and a slower bus, so real-world access is slower than an internal SSD even though the underlying memory is similar (Kingston Technology, n.d.)"
+      ],
+      "questionIds": []
+    },
+    {
+      "id": "hdd-15k",
+      "rank": 11,
+      "name": "HDD, 15,000 RPM (enterprise)",
+      "shortName": "HDD 15K",
+      "tier": "mechanical",
+      "icon": "hard-drive",
+      "accessTime": 2,
+      "unit": "ms",
+      "accessText": "~2.0 ms rotational + seek, roughly 5 to 6 ms total",
+      "calloutText": "~5 to 6 ms total",
+      "range": {
+        "min": 5,
+        "max": 6,
+        "unit": "ms",
+        "label": "total with seek"
+      },
+      "band": null,
+      "orderOfMagnitude": {
+        "text": "10⁻³ s",
+        "from": -3,
+        "to": -3,
+        "approx": false
+      },
+      "dominantDelay": "Rotational latency and seek together",
+      "volatile": false,
+      "cost": {
+        "text": "Low",
+        "rank": 3
+      },
+      "capacity": {
+        "text": "Hundreds of GB to a few TB",
+        "log10Bytes": [
+          11.3,
+          12.5
+        ],
+        "unlimited": false
+      },
+      "typicalUse": "High-performance enterprise storage",
+      "source": "Seagate Technology, 2015",
+      "referenceIds": [
+        "seagate-2015"
+      ],
+      "facts": [
+        "15,000 RPM is about 2.0 ms average rotational latency as rated by the manufacturer (Seagate Technology, 2015)"
+      ],
+      "questionIds": [
+        9,
+        8,
+        1
+      ]
+    },
+    {
+      "id": "hdd-7200",
+      "rank": 12,
+      "name": "HDD, 7,200 RPM (desktop/enterprise)",
+      "shortName": "HDD 7,200",
+      "tier": "mechanical",
+      "icon": "hard-drive",
+      "accessTime": 9.3,
+      "unit": "ms",
+      "accessText": "~4.16 ms rotational + seek, roughly 9 to 13 ms total",
+      "calloutText": "~9 to 13 ms total",
+      "range": {
+        "min": 9,
+        "max": 13,
+        "unit": "ms",
+        "label": "total with seek"
+      },
+      "band": null,
+      "orderOfMagnitude": {
+        "text": "10⁻² s",
+        "from": -2,
+        "to": -2,
+        "approx": false
+      },
+      "dominantDelay": "Rotational latency and seek together",
+      "volatile": false,
+      "cost": {
+        "text": "Very low",
+        "rank": 2
+      },
+      "capacity": {
+        "text": "1 to 24+ TB",
+        "log10Bytes": [
+          12,
+          13.38
+        ],
+        "unlimited": false
+      },
+      "typicalUse": "Mainstream desktop and NAS storage",
+      "source": "Seagate Technology, 2019 / Weiss, n.d.",
+      "referenceIds": [
+        "seagate-2019",
+        "weiss"
+      ],
+      "facts": [
+        "7,200 RPM is about 4.16 ms average rotational latency as measured on a real drive (Seagate Technology, 2019)",
+        "Average seek time on desktop-class drives: about 3 to 12 ms, 9 ms is a commonly cited typical figure (Weiss, n.d.)"
+      ],
+      "questionIds": [
+        1,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "hdd-5400",
+      "rank": 13,
+      "name": "HDD, 5,400 RPM (laptop/consumer)",
+      "shortName": "HDD 5,400",
+      "tier": "mechanical",
+      "icon": "hard-drive",
+      "accessTime": 15.6,
+      "unit": "ms",
+      "accessText": "~5.6 ms rotational + seek, roughly 15 to 16 ms total",
+      "calloutText": "~15 to 16 ms total",
+      "range": {
+        "min": 15,
+        "max": 16,
+        "unit": "ms",
+        "label": "total with seek"
+      },
+      "band": null,
+      "orderOfMagnitude": {
+        "text": "10⁻² s",
+        "from": -2,
+        "to": -2,
+        "approx": false
+      },
+      "dominantDelay": "Rotational latency and seek together, slower spindle",
+      "volatile": false,
+      "cost": {
+        "text": "Very low",
+        "rank": 2
+      },
+      "capacity": {
+        "text": "500 GB to 5 TB",
+        "log10Bytes": [
+          11.699,
+          12.699
+        ],
+        "unlimited": false
+      },
+      "typicalUse": "Budget laptops, external drives",
+      "source": "Stanford University, n.d. / Weiss, n.d.",
+      "referenceIds": [
+        "stanford",
+        "weiss"
+      ],
+      "facts": [
+        "Worked figure, calculated from the formula rather than the lesson slides: 5,400 RPM is about 5.6 ms average rotational latency (average latency = half of one full rotation, rotation time = 60 / RPM) (Weiss, n.d.) (Stanford University, n.d.)",
+        "Total average access time runs to about 15 to 16 ms on a slow 5,400 RPM drive (Weiss, n.d.) (Stanford University, n.d.)"
+      ],
+      "questionIds": [
+        9,
+        1
+      ]
+    },
+    {
+      "id": "network",
+      "rank": 14,
+      "name": "Network / cloud storage (round trip)",
+      "shortName": "Network / cloud",
+      "tier": "archive",
+      "icon": "cloud",
+      "accessTime": 50,
+      "unit": "ms",
+      "accessText": "~8 ms (same metro area) to 270+ ms (opposite side of the world)",
+      "calloutText": "~8 to 270+ ms round trip",
+      "range": {
+        "min": 8,
+        "max": 270,
+        "unit": "ms",
+        "label": "round trip"
+      },
+      "band": null,
+      "orderOfMagnitude": {
+        "text": "10⁻² to 10⁻¹ s",
+        "from": -2,
+        "to": -1,
+        "approx": false
+      },
+      "dominantDelay": "Physical distance and number of network hops, not the storage device itself",
+      "volatile": false,
+      "cost": {
+        "text": "Pay-per-use, no fixed per-GB hardware cost",
+        "rank": null
+      },
+      "capacity": {
+        "text": "Effectively unlimited (provider-managed)",
+        "log10Bytes": null,
+        "unlimited": true
+      },
+      "typicalUse": "Off-site backup, shared/collaborative storage",
+      "source": "Microsoft Corporation, 2026",
+      "referenceIds": [
+        "microsoft"
+      ],
+      "facts": [
+        "A round trip to a nearby data center runs about 8 ms, while a round trip to a data center on the other side of the world can run past 270 ms (Microsoft Corporation, 2026)"
+      ],
+      "questionIds": [
+        12
+      ]
+    },
+    {
+      "id": "optical",
+      "rank": 15,
+      "name": "Optical disc (CD/DVD/Blu-ray)",
+      "shortName": "Optical disc",
+      "tier": "archive",
+      "icon": "disc",
+      "accessTime": 150,
+      "unit": "ms",
+      "accessText": "Roughly 100 to 300 ms (estimated order of magnitude, no single vendor spec found)",
+      "calloutText": "~100 to 300 ms (estimate)",
+      "range": {
+        "min": 100,
+        "max": 300,
+        "unit": "ms",
+        "label": "estimated"
+      },
+      "band": null,
+      "orderOfMagnitude": {
+        "text": "10⁻¹ s",
+        "from": -1,
+        "to": -1,
+        "approx": false
+      },
+      "dominantDelay": "Laser must jump across a spiral track, not concentric rings",
+      "volatile": false,
+      "cost": {
+        "text": "Low (per disc)",
+        "rank": 3
+      },
+      "capacity": {
+        "text": "700 MB (CD) to 100 GB (Blu-ray XL)",
+        "log10Bytes": [
+          8.845,
+          11
+        ],
+        "unlimited": false
+      },
+      "typicalUse": "Software/media distribution, cold archival",
+      "source": "Order-of-magnitude estimate, no exact vendor figure located",
+      "referenceIds": [],
+      "facts": [
+        "Drive makers publish read speed (\"16x\") rather than one access-time number. Published academic material puts it roughly two orders of magnitude behind a hard disk",
+        "No vendor datasheet located during research publishes a single official \"access time\" figure for CD/DVD/Blu-ray drives. The figure is an order-of-magnitude range drawn from academic course material, flagged as an estimate rather than a hard spec."
+      ],
+      "questionIds": [
+        10,
+        11
+      ]
+    },
+    {
+      "id": "tape",
+      "rank": 16,
+      "name": "Magnetic tape (LTO-9), locating one file",
+      "shortName": "Tape (LTO-9)",
+      "tier": "archive",
+      "icon": "cassette-tape",
+      "accessTime": 55,
+      "unit": "s",
+      "accessText": "10 to 100 seconds to locate, plus 4-10 s robotic mount and ~11 s drive load",
+      "calloutText": "10 to 100 s to locate",
+      "range": {
+        "min": 10,
+        "max": 100,
+        "unit": "s",
+        "label": "locate"
+      },
+      "band": null,
+      "orderOfMagnitude": {
+        "text": "10¹ to 10² s",
+        "from": 1,
+        "to": 2,
+        "approx": false
+      },
+      "dominantDelay": "Physically winding the tape to the right position",
+      "volatile": false,
+      "cost": {
+        "text": "Extremely low",
+        "rank": 1
+      },
+      "capacity": {
+        "text": "18 TB native, 45 TB compressed per cartridge",
+        "log10Bytes": [
+          13.255,
+          13.255
+        ],
+        "unlimited": false
+      },
+      "typicalUse": "Bulk backup, long-term off-site archiving",
+      "source": "LTO Program, n.d. / Moore, 2020",
+      "referenceIds": [
+        "lto",
+        "moore"
+      ],
+      "facts": [
+        "Native transfer rate is 400 MB/s, 1,000 MB/s compressed (LTO Program, n.d.)",
+        "Finding one specific file means a robotic mount (4 to 10 seconds), a drive load (about 11 seconds), and then locating the file on the tape (10 to 100 seconds) (Moore, 2020)",
+        "Once the tape is positioned, it streams data faster than most hard disks (360 to 400 MB/s vs. 160 to 220 MB/s) (Moore, 2020)"
+      ],
+      "questionIds": [
+        5,
+        3,
+        11
+      ]
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "section": "I",
+  "title": "References (APA 7th edition)",
+  "references": [
+    {
+      "id": "kingston",
+      "citation": "Kingston Technology, n.d.",
+      "apa": "Kingston Technology. (n.d.). *Flash memory guide*.",
+      "url": "https://media.kingston.com/pdfs/MKF-283.3-Flash-Memory-Guide_EN.pdf"
+    },
+    {
+      "id": "lto",
+      "citation": "LTO Program, n.d.",
+      "apa": "LTO Program. (n.d.). *LTO-9: LTO generation 9 technology*. Ultrium LTO.",
+      "url": "https://www.lto.org/lto-9/"
+    },
+    {
+      "id": "mit",
+      "citation": "Massachusetts Institute of Technology, n.d.",
+      "apa": "Massachusetts Institute of Technology. (n.d.). *L14: The memory hierarchy* [6.004 Computation Structures course notes].",
+      "url": "https://computationstructures.org/lectures/caches/caches.html"
+    },
+    {
+      "id": "microsoft",
+      "citation": "Microsoft Corporation, 2026",
+      "apa": "Microsoft Corporation. (2026, July 30). *Azure network round-trip latency statistics*. Microsoft Learn.",
+      "url": "https://learn.microsoft.com/en-us/azure/networking/azure-network-latency"
+    },
+    {
+      "id": "moore",
+      "citation": "Moore, 2020",
+      "apa": "Moore, F. (2020). *Tape performance accelerates: Access time and throughput* [White paper]. Horison Information Strategies.",
+      "url": "https://asset.fujifilm.com/master/americas/files/2020-08/9f5b0bdaa10596d3577f8748f18d6463/Horison_Tape-Performance_2020.pdf"
+    },
+    {
+      "id": "nayda",
+      "citation": "Nayda, n.d.",
+      "apa": "Nayda, L. (n.d.). *Computer organization and architecture, chapter 4: Cache memory* [Course slides presenting W. Stallings's Computer Organization and Architecture, 8th ed.]. University of Puerto Rico, Mayagüez.",
+      "url": "https://ece.uprm.edu/~nayda/Courses/Icom4215F2011/Cache.pdf"
+    },
+    {
+      "id": "nddu-a",
+      "citation": "Lesson 1",
+      "apa": "NDDU. (n.d.-a). *Storage management in operating systems* [PowerPoint slides]. Notre Dame of Dadiangas University. (Referenced throughout as Lesson 1)",
+      "url": null
+    },
+    {
+      "id": "nddu-b",
+      "citation": "Lesson 2",
+      "apa": "NDDU. (n.d.-b). *Device management* [PowerPoint slides]. Notre Dame of Dadiangas University. (Referenced throughout as Lesson 2)",
+      "url": null
+    },
+    {
+      "id": "nvme",
+      "citation": "NVM Express, n.d.",
+      "apa": "NVM Express, Inc. (n.d.). *NVMe overview*.",
+      "url": "https://nvmexpress.org/wp-content/uploads/NVMe_Overview.pdf"
+    },
+    {
+      "id": "samsung",
+      "citation": "Samsung Electronics, 2023",
+      "apa": "Samsung Electronics Co. (2023). *Samsung V-NAND SSD 990 PRO datasheet* (Rev. 2.0).",
+      "url": "https://download.semiconductor.samsung.com/resources/data-sheet/samsung_nvme_ssd_990_pro_datasheet_rev.2.0.pdf"
+    },
+    {
+      "id": "sciencedirect",
+      "citation": "ScienceDirect Topics, n.d.",
+      "apa": "ScienceDirect Topics. (n.d.). *Memory access latency*. Elsevier.",
+      "url": "https://www.sciencedirect.com/topics/computer-science/memory-access-latency"
+    },
+    {
+      "id": "seagate-2015",
+      "citation": "Seagate Technology, 2015",
+      "apa": "Seagate Technology. (2015). *Enterprise Performance 15K HDD data sheet* (DS1797.5c-1504US).",
+      "url": "https://www.seagate.com/www-content/product-content/enterprise-performance-savvio-fam/enterprise-performance-15k-hdd/ent-perf-15k-5/en-us/docs/enterprise-performance-15k-hdd-ds1797-5c-1504us.pdf"
+    },
+    {
+      "id": "seagate-2019",
+      "citation": "Seagate Technology, 2019",
+      "apa": "Seagate Technology. (2019). *Exos X16 data sheet* (DS2011.1-1904US).",
+      "url": "https://www.seagate.com/files/www-content/datasheets/pdfs/exos-x16-DS2011-1-1904US-en_US.pdf"
+    },
+    {
+      "id": "sfu",
+      "citation": "Simon Fraser University, n.d.",
+      "apa": "Simon Fraser University. (n.d.). *Overview of physical storage media* [CMPT 354 course notes].",
+      "url": "https://www2.cs.sfu.ca/CourseCentral/354/zaiane/material/notes/Chapter10/node2.html"
+    },
+    {
+      "id": "stanford",
+      "citation": "Stanford University, n.d.",
+      "apa": "Stanford University. (n.d.). *Lecture 16: I/O devices* [EE108B course notes].",
+      "url": "https://web.stanford.edu/class/archive/ee/ee108b/ee108b.1082/handouts/lect.16.IO_Devices.pdf"
+    },
+    {
+      "id": "uw",
+      "citation": "University of Washington, 2023",
+      "apa": "University of Washington. (2023). *Persistent storage* [CSE 451 course notes].",
+      "url": "https://courses.cs.washington.edu/courses/cse451/23au/lectures/notes/storage.html"
+    },
+    {
+      "id": "weiss",
+      "citation": "Weiss, n.d.",
+      "apa": "Weiss, S. (n.d.). *Chapter 11: Mass-storage systems* [Course slides based on Silberschatz, Galvin, and Gagne's Operating System Concepts, 10th ed.]. CUNY Hunter College.",
+      "url": "https://www.cs.hunter.cuny.edu/~sweiss/course_materials/csci340/slides/chapter11.pdf"
+    }
+  ]
+}

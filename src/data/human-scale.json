@@ -1,0 +1,23 @@
+{
+  "section": "E",
+  "title": "Human-Scale Analogy",
+  "rule": "1 nanosecond of real time = 1 second of human time.",
+  "explanation": "Every figure below is the representative value from Section D, converted with that rule, then converted again into a human-friendly unit. Because the rule is linear, converting is just \"take the real time in nanoseconds and read it as seconds.\"",
+  "methodNote": "Where Section D gave a range, the midpoint was used here so each device gets exactly one illustrative number. Conversions: 60 seconds = 1 minute, 3,600 seconds = 1 hour, 86,400 seconds = 1 day, 31,536,000 seconds = 1 (365-day) year.",
+  "entries": [
+    { "id": "register", "device": "CPU register", "realText": "0.02 ns", "nanosecondsText": "0.02 ns", "nanoseconds": 0.02, "human": "0.02 seconds", "gloss": "faster than an eye blink (~0.1 to 0.4 s)" },
+    { "id": "l1", "device": "L1 cache", "realText": "1 ns", "nanosecondsText": "1 ns", "nanoseconds": 1, "human": "1 second", "gloss": "about one heartbeat" },
+    { "id": "l2", "device": "L2 cache", "realText": "3 ns", "nanosecondsText": "3 ns", "nanoseconds": 3, "human": "3 seconds", "gloss": null },
+    { "id": "l3", "device": "L3 cache", "realText": "12 ns", "nanosecondsText": "12 ns", "nanoseconds": 12, "human": "12 seconds", "gloss": null },
+    { "id": "dram", "device": "DRAM (main memory)", "realText": "50 ns (midpoint of 30 to 100 ns)", "nanosecondsText": "50 ns", "nanoseconds": 50, "human": "50 seconds", "gloss": "just under a minute" },
+    { "id": "nand", "device": "Raw NAND flash (component)", "realText": "10 µs", "nanosecondsText": "10,000 ns", "nanoseconds": 10000, "human": "2 hours 47 minutes", "gloss": null },
+    { "id": "nvme", "device": "NVMe SSD (host-visible, illustrative midpoint)", "realText": "50 µs", "nanosecondsText": "50,000 ns", "nanoseconds": 50000, "human": "13 hours 53 minutes", "gloss": "about half a day" },
+    { "id": "sata", "device": "SATA SSD (host-visible, illustrative midpoint)", "realText": "200 µs", "nanosecondsText": "200,000 ns", "nanoseconds": 200000, "human": "about 2.3 days", "gloss": null },
+    { "id": "hdd-15k", "device": "HDD, 15,000 RPM", "realText": "2.0 ms", "nanosecondsText": "2,000,000 ns", "nanoseconds": 2000000, "human": "about 23 days", "gloss": null },
+    { "id": "hdd-7200", "device": "HDD, 7,200 RPM", "realText": "9.3 ms", "nanosecondsText": "9,300,000 ns", "nanoseconds": 9300000, "human": "about 108 days", "gloss": "roughly 3.5 months" },
+    { "id": "hdd-5400", "device": "HDD, 5,400 RPM", "realText": "15.6 ms", "nanosecondsText": "15,600,000 ns", "nanoseconds": 15600000, "human": "about 181 days", "gloss": "roughly 6 months" },
+    { "id": "network", "device": "Network / cloud storage (typical cross-region)", "realText": "50 ms", "nanosecondsText": "50,000,000 ns", "nanoseconds": 50000000, "human": "about 1 year 7 months", "gloss": null },
+    { "id": "optical", "device": "Optical disc (estimated)", "realText": "150 ms", "nanosecondsText": "150,000,000 ns", "nanoseconds": 150000000, "human": "about 4.8 years", "gloss": null },
+    { "id": "tape", "device": "Magnetic tape, locating one file", "realText": "55 s (midpoint of 10 to 100 s)", "nanosecondsText": "55,000,000,000 ns", "nanoseconds": 55000000000, "human": "about 1,744 years", "gloss": null }
+  ]
+}
