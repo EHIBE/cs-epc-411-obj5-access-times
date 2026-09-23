@@ -40,24 +40,26 @@ const frame = (label: string, children: (Node | string)[]): HTMLElement =>
   el('figure', { className: 'figure-block mt-4', attrs: { 'aria-label': label } }, children)
 
 const caption = (text: string): HTMLElement =>
-  el('figcaption', { className: 't-cite mt-2 text-[0.76rem] leading-snug', text })
+  el('figcaption', { className: 't-cite mt-2 text-[0.8rem] leading-snug', text })
+
+const presenterCaption = (text: string): HTMLElement => el('p', { className: 'presenter-note mt-2', text })
 
 /** Lesson 2, Slide 1's title diagram redrawn: the two access-method branches and the media on each. */
 function branches(): LiveFigure {
-  const width = 440
+  const width = 460
   const drawing = svg('svg', { viewBox: `0 0 ${width} 150`, class: 'w-full h-auto', role: 'img', 'aria-label': 'Sequential access branches to paper and magnetic tape; direct access branches to magnetic disk and optical disc' })
   ACCESS_BRANCHES.forEach((branch, column) => {
-    const x = column * 225 + 5
+    const x = column * 235 + 5
     drawing.append(
-      svg('rect', { x, y: 4, width: 210, height: 34, rx: 7, fill: 'var(--ink)' }),
-      svg('text', { x: x + 105, y: 26, 'text-anchor': 'middle', fill: 'var(--ground)', 'font-size': 13, 'font-weight': 700 }, [branch.name]),
+      svg('rect', { x, y: 4, width: 220, height: 34, rx: 2, fill: 'var(--ink)' }),
+      svg('text', { x: x + 110, y: 26, 'text-anchor': 'middle', fill: 'var(--sheet)', 'font-size': 14, 'font-weight': 700 }, [branch.name]),
     )
     branch.media.forEach((medium, row) => {
       const y = 62 + row * 44
       drawing.append(
         svg('path', { d: `M${x + 18} 38 V${y + 17} H${x + 30}`, fill: 'none', stroke: 'var(--ink-2)', 'stroke-width': 1 }),
-        svg('rect', { x: x + 30, y, width: 180, height: 34, rx: 7, fill: 'var(--sheet)', stroke: 'var(--rule-strong)', 'stroke-width': 1 }),
-        svg('text', { x: x + 42, y: y + 21, fill: 'var(--ink)', 'font-size': 11.5, 'font-weight': 560 }, [medium.label]),
+        svg('rect', { x: x + 30, y, width: 190, height: 34, rx: 2, fill: 'var(--sheet)', stroke: 'var(--rule-strong)', 'stroke-width': 1 }),
+        svg('text', { x: x + 40, y: y + 21, fill: 'var(--ink)', 'font-size': 12.5, 'font-weight': 560, style: 'font-stretch: 86%' }, [medium.label]),
       )
     })
   })
@@ -76,7 +78,7 @@ function flow(): LiveFigure {
   const row = el('ol', { className: 'grid grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] items-center gap-1.5' })
   steps.forEach((step, index) => {
     const box = el('li', {
-      className: 'flow-step rounded-lg border border-[var(--rule-strong)] px-2 py-2 text-center text-[0.8rem] font-semibold leading-tight',
+      className: 'flow-step border border-[var(--rule-strong)] px-2 py-2 text-center text-[0.82rem] font-semibold leading-tight',
       text: step.label,
     })
     boxes.set(step.phase, box)
@@ -84,7 +86,7 @@ function flow(): LiveFigure {
     if (index < steps.length - 1) row.appendChild(el('li', { attrs: { 'aria-hidden': 'true' }, className: 'text-[var(--ink-3)]' }, [icon('arrow-right')]))
   })
   return {
-    element: frame('Access time flow', [row, caption('Lit by the hard disk model as each phase happens.')]),
+    element: frame('Access time flow', [row, presenterCaption('Each box lights as the hard disk model reaches that phase.')]),
     setDiskPhase(phase) {
       boxes.forEach((box, key) => {
         box.dataset.active = String(key === phase)
@@ -119,22 +121,22 @@ function nanobars(context: FigureContext): LiveFigure {
     if (!device) continue
     const min = device.range ? toSeconds(device.range.min, device.range.unit) * 1e9 : toSeconds(device.accessTime ?? 1, device.unit) * 1e9
     const max = device.range ? toSeconds(device.range.max, device.range.unit) * 1e9 : min
-    const track = el('div', { className: 'relative h-3.5 rounded-full bg-[var(--well)]' }, [
+    const track = el('div', { className: 'relative h-3 bg-[var(--well)]' }, [
       el('div', {
-        className: 'absolute inset-y-0 left-0 rounded-full',
+        className: 'absolute inset-y-0 left-0',
         style: { width: `${toPercent(max)}%`, background: context.colorOf(id), opacity: device.range ? '0.35' : '1' },
       }),
-      el('div', { className: 'absolute inset-y-0 left-0 rounded-full', style: { width: `${toPercent(min)}%`, background: context.colorOf(id) } }),
+      el('div', { className: 'absolute inset-y-0 left-0', style: { width: `${toPercent(min)}%`, background: context.colorOf(id) } }),
     ])
     list.appendChild(
-      el('div', { className: 'grid grid-cols-[4.2rem_1fr_6.2rem] items-center gap-2 text-[0.78rem]' }, [
+      el('div', { className: 'grid grid-cols-[4.2rem_1fr_6.8rem] items-center gap-2 text-[0.82rem]' }, [
         el('span', { className: 'font-semibold', text: device.shortName }),
         track,
         el('span', { className: 'num text-right text-[var(--ink-2)]' }, [richText(device.calloutText)]),
       ]),
     )
   }
-  const axis = el('div', { className: 'grid grid-cols-[4.2rem_1fr_6.2rem] gap-2 text-[0.72rem] text-[var(--ink-3)]' }, [
+  const axis = el('div', { className: 'mt-1 grid grid-cols-[4.2rem_1fr_6.8rem] gap-2 text-[0.78rem] text-[var(--ink-3)]' }, [
     el('span'),
     el('div', { className: 'num flex justify-between' }, ['0.01 ns', '0.1 ns', '1 ns', '10 ns', '100 ns'].map((text) => el('span', { text }))),
     el('span'),
@@ -159,7 +161,7 @@ function power(context: FigureContext): LiveFigure {
       : 'Registers, cache and DRAM lost their contents. Byte-addressable NVM and everything below kept theirs.'
   }
   render(context.isPowerOn())
-  return { element: frame('Power demonstration', [el('div', { className: 'flex flex-wrap items-center gap-3' }, [button, el('span', { className: 't-cite text-[0.74rem]' }, ['Shortcut ', el('kbd', { className: 'keycap', text: 'P' })])]), status]), setPower: render }
+  return { element: frame('Power demonstration', [el('div', { className: 'flex flex-wrap items-center gap-3' }, [button, el('span', { className: 't-cite text-[0.78rem]' }, ['Shortcut ', el('kbd', { className: 'keycap', text: 'P' })])]), status]), setPower: render }
 }
 
 /** Slide 5's worked figures as a table: rotation time from 60 / RPM, average latency as half a turn. */
@@ -190,8 +192,8 @@ function queues(): LiveFigure {
     el('div', { className: 'grid grid-cols-[5.5rem_1fr] items-center gap-3' }, [
       el('div', {}, [el('div', { className: 'text-[0.86rem] font-bold', text: name }), el('div', { className: 't-cite text-[0.7rem]', text: queuesText })]),
       el('div', {}, [
-        el('div', { className: 'relative h-4 rounded-full bg-[var(--well)]' }, [
-          el('div', { className: 'absolute inset-y-0 left-0 rounded-full bg-[var(--ink)]', style: { width: `${fraction * 100}%` } }),
+        el('div', { className: 'relative h-3.5 bg-[var(--well)]' }, [
+          el('div', { className: 'absolute inset-y-0 left-0 bg-[var(--ink)]', style: { width: `${fraction * 100}%` } }),
           past ? el('div', { className: 'absolute -right-0.5 -top-1 bottom-[-0.25rem] w-px bg-[var(--ink)]' }) : null,
         ]),
         el('div', { className: 'num mt-1 text-[0.76rem] text-[var(--ink-2)]', text: iops }),
@@ -217,8 +219,8 @@ function tape(): LiveFigure {
     { phase: 'locate', label: 'Locate', min: 10, max: 100 },
   ]
   const nodes = new Map<string, HTMLElement>()
-  const bar = el('div', { className: 'flex h-9 w-full overflow-hidden rounded-lg border border-[var(--rule-strong)]' })
-  const legend = el('div', { className: 'mt-2 grid grid-cols-4 gap-2 text-[0.72rem] leading-tight' })
+  const bar = el('div', { className: 'flex h-9 w-full overflow-hidden border border-[var(--rule-strong)]' })
+  const legend = el('div', { className: 'mt-2 grid grid-cols-4 gap-2 text-[0.78rem] leading-tight' })
   for (const segment of segments) {
     const fixed = (segment.min / total) * 100
     const variable = ((segment.max - segment.min) / total) * 100
@@ -235,7 +237,7 @@ function tape(): LiveFigure {
       ]),
     )
   }
-  const stream = el('div', { className: 'flow-step flex h-full flex-1 items-center justify-center bg-[var(--sheet)] px-1 text-[0.72rem] font-bold', text: 'Stream' })
+  const stream = el('div', { className: 'flow-step flex h-full flex-1 items-center justify-center bg-[var(--sheet)] px-1 text-[0.78rem] font-bold', text: 'Stream' })
   nodes.set('stream', stream)
   bar.appendChild(stream)
   legend.appendChild(
@@ -264,6 +266,7 @@ function table(context: FigureContext): LiveFigure {
       'tr',
       {
         attrs: { tabindex: 0, 'aria-label': `${device.name}, open details` },
+        style: { '--tint': context.colorOf(device.id) },
         on: {
           click: () => context.actions.select(device.id),
           keydown: (event) => {
@@ -278,7 +281,7 @@ function table(context: FigureContext): LiveFigure {
       },
       [
         el('td', { className: 'num text-[var(--ink-3)]' }, [
-          el('span', { className: 'mr-1.5 inline-block h-2.5 w-2.5 rounded-sm align-middle', style: { background: context.colorOf(device.id) } }),
+          el('span', { className: 'mr-1.5 inline-block h-2.5 w-2.5 align-middle', style: { background: context.colorOf(device.id) } }),
           padRank(device.rank),
         ]),
         el('td', { className: 'font-semibold', text: device.name }),
@@ -298,12 +301,12 @@ function table(context: FigureContext): LiveFigure {
   const sweepLabel = el('span', { text: 'Run the probe' })
   const sweepButton = el('button', { className: 'ctl ctl--solid', attrs: { type: 'button' }, on: { click: () => context.actions.runSweep() } }, [icon('play'), sweepLabel])
   const element = frame('Master comparison table', [
-    el('div', { className: 'max-h-[min(46dvh,34rem)] overflow-auto rounded-lg border border-[var(--rule)] bg-[var(--sheet)]' }, [el('table', { className: 'data-table' }, [head, body])]),
+    el('p', { className: 't-cite mb-2 text-[0.8rem] leading-snug', text: context.data.sectionNote }),
+    el('div', { className: 'max-h-[min(42dvh,32rem)] overflow-auto border border-[var(--rule-strong)] bg-[var(--sheet)]' }, [el('table', { className: 'data-table' }, [head, body])]),
     el('div', { className: 'mt-3 flex flex-wrap items-center gap-2' }, [
       sweepButton,
       el('button', { className: 'ctl ctl--line', attrs: { type: 'button' }, on: { click: () => context.actions.openTable() } }, [icon('table'), 'All nine columns']),
     ]),
-    caption(context.data.sectionNote),
   ])
   return {
     element,
@@ -335,22 +338,22 @@ function human(context: FigureContext): LiveFigure {
   const low = -2
   const high = 4.5 + Math.log10(31_536_000)
   const position = (humanSeconds: number): number => clamp(invLerp(low, high, Math.log10(humanSeconds)), 0, 1) * 100
-  const track = el('div', { className: 'relative mt-7 h-1.5 rounded-full', style: { background: 'var(--rule-strong)' } })
-  const ticks: { label: string; seconds: number }[] = [
+  const track = el('div', { className: 'relative mt-7 h-px', style: { background: 'var(--ink-2)' } })
+  const ticks: { label: string | null; seconds: number }[] = [
     { label: '1 s', seconds: 1 },
     { label: '1 min', seconds: 60 },
     { label: '1 h', seconds: 3600 },
     { label: '1 day', seconds: 86_400 },
     { label: '1 mo', seconds: 2_592_000 },
     { label: '1 yr', seconds: 31_536_000 },
-    { label: '100 yr', seconds: 3_153_600_000 },
+    { label: null, seconds: 3_153_600_000 },
     { label: '1,000 yr', seconds: 31_536_000_000 },
   ]
-  const axis = el('div', { className: 'relative mt-2 h-4 text-[0.72rem] text-[var(--ink-3)]' })
+  const axis = el('div', { className: 'relative mt-2 h-4 text-[0.78rem] text-[var(--ink-3)]' })
   for (const tick of ticks) {
     const left = position(tick.seconds)
-    track.appendChild(el('span', { className: 'absolute top-1/2 h-3 w-px -translate-y-1/2 bg-[var(--ink-2)]', style: { left: `${left}%` } }))
-    axis.appendChild(el('span', { className: 'num absolute -translate-x-1/2 whitespace-nowrap', text: tick.label, style: { left: `${left}%` } }))
+    track.appendChild(el('span', { className: 'absolute top-1/2 h-2.5 w-px -translate-y-1/2 bg-[var(--ink-2)]', style: { left: `${left}%` } }))
+    if (tick.label) axis.appendChild(el('span', { className: 'num absolute -translate-x-1/2 whitespace-nowrap', text: tick.label, style: { left: `${left}%` } }))
   }
   const headlines = new Set(['l1', 'hdd-7200', 'tape'])
   const readout = el('p', { className: 'mt-3 min-h-[2.6em] text-[0.84rem] leading-snug', attrs: { 'aria-live': 'polite' } })
@@ -397,7 +400,8 @@ function human(context: FigureContext): LiveFigure {
       el('div', { className: 'relative' }, [track, axis]),
       readout,
       sweepButton,
-      caption(`${context.data.humanScale.methodNote} Hover or tab to a dot for its conversion.`),
+      caption(context.data.humanScale.methodNote),
+      presenterCaption('Hover or tab to a dot to read its conversion aloud.'),
     ]),
     setSweeping(on) {
       sweepLabel.textContent = on ? 'Probe running' : 'Run the probe in human time'

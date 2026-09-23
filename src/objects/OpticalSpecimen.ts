@@ -50,6 +50,7 @@ export class OpticalSpecimen extends Specimen {
 
   constructor(opticalColor: Color, diskColor: Color) {
     super()
+    this.dock.set(-9.5, -0.3, 0)
     const base = new Mesh(new RoundedBoxGeometry(19, 0.4, 8.6, 3, 0.24), this.kit.aluminum)
     base.position.set(0, -0.3, 0)
     base.receiveShadow = true

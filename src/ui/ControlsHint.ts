@@ -12,14 +12,16 @@ const ITEMS: readonly { glyph: IconName | string; text: string }[] = [
 
 const FADE_AFTER_MS = 5000
 
-/** The bottom-right controls hint: visible for five seconds, back once on the first interaction, and whenever the pointer visits the corner. */
+/** The bottom-right controls hint: visible for five seconds, back once on the first interaction, and whenever the pointer visits the corner; while it shows, scene labels keep out of its corner. */
 export class ControlsHint {
   private readonly root: HTMLElement
+  private readonly onChange: (rect: DOMRect | null) => void
   private timer = 0
   private replayed = false
 
-  constructor(root: HTMLElement) {
+  constructor(root: HTMLElement, onChange: (rect: DOMRect | null) => void = () => undefined) {
     this.root = root
+    this.onChange = onChange
     root.classList.add('hint')
     root.setAttribute('aria-label', 'Mouse and keyboard controls')
     root.append(
@@ -27,7 +29,7 @@ export class ControlsHint {
         'ul',
         { className: 'grid gap-1.5' },
         ITEMS.map((item) =>
-          el('li', { className: 'flex items-center gap-2 text-[0.76rem] font-medium text-[var(--ink-2)]' }, [
+          el('li', { className: 'flex items-center gap-2 text-[0.8rem] font-medium text-[var(--ink-2)]' }, [
             item.glyph.length <= 3
               ? el('kbd', { className: 'keycap', text: item.glyph })
               : el('span', { className: 'inline-flex h-[1.45rem] w-[1.45rem] items-center justify-center text-[var(--ink)]' }, [icon(item.glyph as IconName)]),
@@ -38,12 +40,13 @@ export class ControlsHint {
     )
     root.addEventListener('mouseenter', () => this.show(false))
     root.addEventListener('mouseleave', () => this.schedule())
-    this.schedule()
+    this.show(true)
   }
 
   private show(autoHide: boolean): void {
     window.clearTimeout(this.timer)
     this.root.dataset.faded = 'false'
+    window.requestAnimationFrame(() => this.onChange(this.root.getClientRects().length > 0 ? this.root.getBoundingClientRect() : null))
     if (autoHide) this.schedule()
   }
 
@@ -51,6 +54,7 @@ export class ControlsHint {
     window.clearTimeout(this.timer)
     this.timer = window.setTimeout(() => {
       this.root.dataset.faded = 'true'
+      this.onChange(null)
     }, FADE_AFTER_MS)
   }
 

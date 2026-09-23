@@ -47,7 +47,7 @@ export class MasterTable {
         },
         [
           el('td', { className: 'num whitespace-nowrap text-[var(--ink-3)]' }, [
-            el('span', { className: 'mr-1.5 inline-block h-2.5 w-2.5 rounded-sm align-middle', style: { background: colorOf(device.id) } }),
+            el('span', { className: 'mr-1.5 inline-block h-2.5 w-2.5 align-middle', style: { background: colorOf(device.id) } }),
             padRank(device.rank),
           ]),
           el('th', { className: 'min-w-[9rem] text-[0.84rem] font-semibold text-[var(--ink)]', text: device.name, attrs: { scope: 'row' } }),

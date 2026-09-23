@@ -37,6 +37,7 @@ export class DieSpecimen extends Specimen {
 
   constructor(colors: DieColors) {
     super()
+    this.dock.set(-4.6, 0.1, 0)
     const substrate = new Mesh(new RoundedBoxGeometry(9.2, 0.32, 9.2, 3, 0.2), this.kit.anodized)
     substrate.position.y = 0
     substrate.castShadow = true

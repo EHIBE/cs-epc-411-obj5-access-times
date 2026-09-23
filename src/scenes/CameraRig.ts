@@ -68,11 +68,11 @@ export class CameraRig {
     this.applyProjection()
   }
 
-  /** Centres the scene in the region the overlays leave free; each inset is the pixels a panel covers on that side. */
-  setFrame(insets: { left: number; right: number; top: number; bottom: number }, immediate = false): void {
+  /** Centres the scene in the region the overlays leave free; each inset is the pixels a panel covers on that side, and the bias keeps room on the right for the callout column without shrinking the model. */
+  setFrame(insets: { left: number; right: number; top: number; bottom: number }, immediate = false, bias = 0): void {
     const freeWidth = Math.max(1, this.width - insets.left - insets.right)
     const freeHeight = Math.max(1, this.height - insets.top - insets.bottom)
-    const shift = (insets.left - insets.right) / 2
+    const shift = (insets.left - insets.right - bias) / 2
     const lift = (insets.bottom - insets.top) / 2
     const zoom = clamp(Math.min(freeWidth / (this.width * 0.64), freeHeight / (this.height * 0.86)), 0.6, 1.12)
     if (immediate) {

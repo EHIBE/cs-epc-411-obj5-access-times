@@ -36,6 +36,7 @@ export class TapeSpecimen extends Specimen {
 
   constructor(accent: Color) {
     super()
+    this.dock.set(-10.3, -0.2, 0)
     const floor = new Mesh(new RoundedBoxGeometry(19, 0.4, 9.6, 3, 0.24), this.kit.aluminum)
     floor.position.set(-0.8, -0.2, 0)
     floor.receiveShadow = true

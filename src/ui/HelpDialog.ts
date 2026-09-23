@@ -13,6 +13,7 @@ export const SHORTCUTS: readonly { keys: string[]; action: string }[] = [
   { keys: ['Q'], action: 'Likely questions' },
   { keys: ['[', ']'], action: 'Faster or slower device, while details are open' },
   { keys: ['E'], action: 'Hide or show the slide panel' },
+  { keys: ['N'], action: 'Presenter notes: timings, lesson links and cues' },
   { keys: ['R'], action: 'Reset the camera to this step' },
   { keys: ['T'], action: 'Light or dark theme' },
   { keys: ['F'], action: 'Full screen' },

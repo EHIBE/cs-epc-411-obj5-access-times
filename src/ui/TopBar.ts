@@ -8,6 +8,7 @@ export interface TopBarActions {
   openQuestions: () => void
   openSources: () => void
   toggleDeck: () => void
+  toggleNotes: () => void
   toggleTheme: () => void
   toggleFullscreen: () => void
   openHelp: () => void
@@ -23,9 +24,10 @@ function strataMark(): SVGSVGElement {
     [1, 24, 21],
   ]
   for (const [t, width, y] of rows) {
-    mark.appendChild(svg('rect', { x: 14 - width / 2, y, width, height: 3.4, rx: 1.2, fill: speedColor(t) }))
+    mark.appendChild(svg('rect', { x: 15 - width / 2, y, width, height: 3.4, rx: 0.6, fill: speedColor(t) }))
   }
-  mark.appendChild(svg('rect', { x: 1, y: 2, width: 2.2, height: 24, rx: 1, fill: 'var(--ink)' }))
+  mark.appendChild(svg('rect', { x: 1, y: 2, width: 2.6, height: 24, rx: 0.4, fill: 'var(--ink)' }))
+  mark.appendChild(svg('path', { d: 'M1 1.5 H27', stroke: 'var(--ink)', 'stroke-width': 1 }))
   return mark
 }
 
@@ -35,6 +37,7 @@ export class TopBar {
   private readonly themeButton: HTMLButtonElement
   private readonly fullscreenButton: HTMLButtonElement
   private readonly deckButton: HTMLButtonElement
+  private readonly notesButton: HTMLButtonElement
 
   constructor(root: HTMLElement, actions: TopBarActions) {
     this.humanSwitch = el(
@@ -47,7 +50,7 @@ export class TopBar {
       [
         el('span', { className: 'flex flex-col items-start leading-none' }, [
           el('span', { className: 'text-[0.84rem] font-bold text-[var(--ink)]', text: 'Human time' }),
-          el('span', { className: 'switch-note num mt-0.5 text-[0.68rem] font-medium text-[var(--ink-3)]', text: '1 ns = 1 s' }),
+          el('span', { className: 'switch-note num mt-0.5 text-[0.76rem] font-medium text-[var(--ink-3)]', text: '1 ns = 1 s' }),
         ]),
         el('span', { className: 'switch', attrs: { 'aria-hidden': 'true' } }),
       ],
@@ -60,6 +63,7 @@ export class TopBar {
     const plain = (name: IconName, label: string, onClick: () => void): HTMLButtonElement =>
       el('button', { className: 'ctl ctl--icon', attrs: { type: 'button', 'aria-label': label, title: label }, on: { click: onClick } }, [icon(name)])
     this.deckButton = plain('sidebar-simple', 'Hide the slide panel (E)', actions.toggleDeck)
+    this.notesButton = plain('notepad', 'Show presenter notes (N)', actions.toggleNotes)
     this.themeButton = plain('moon', 'Switch to the dark theme (T)', actions.toggleTheme)
     this.fullscreenButton = plain('corners-out', 'Full screen (F)', actions.toggleFullscreen)
     root.append(
@@ -67,7 +71,7 @@ export class TopBar {
         strataMark(),
         el('div', { className: 'brand-text min-w-0 leading-tight' }, [
           el('p', { className: 'truncate text-[0.98rem] font-bold [font-stretch:112%]', text: 'Access times' }),
-          el('p', { className: 't-cite truncate text-[0.72rem]', text: 'Objective #5 of Lesson 2, Device Management' }),
+          el('p', { className: 't-cite truncate text-[0.78rem]', text: 'Objective #5 of Lesson 2, Device Management' }),
         ]),
       ]),
       el('div', { className: 'flex items-center gap-1' }, [
@@ -76,6 +80,7 @@ export class TopBar {
         labelled('table', 'Table', actions.openTable, 'M'),
         labelled('question', 'Questions', actions.openQuestions, 'Q'),
         labelled('books', 'Sources', actions.openSources),
+        this.notesButton,
         this.deckButton,
         this.themeButton,
         this.fullscreenButton,
@@ -100,6 +105,13 @@ export class TopBar {
     this.fullscreenButton.replaceChildren(icon(on ? 'corners-in' : 'corners-out'))
     this.fullscreenButton.setAttribute('aria-label', label)
     this.fullscreenButton.title = label
+  }
+
+  setNotes(on: boolean): void {
+    const label = on ? 'Hide presenter notes (N)' : 'Show presenter notes (N)'
+    this.notesButton.setAttribute('aria-pressed', String(on))
+    this.notesButton.setAttribute('aria-label', label)
+    this.notesButton.title = label
   }
 
   setDeckHidden(hidden: boolean): void {

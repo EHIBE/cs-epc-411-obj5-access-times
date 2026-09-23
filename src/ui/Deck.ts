@@ -30,6 +30,14 @@ export class Deck {
     this.data = data
     this.context = context
     this.callbacks = callbacks
+    root.addEventListener('scroll', () => this.updateOverflow(), { passive: true })
+    new ResizeObserver(() => this.updateOverflow()).observe(root)
+  }
+
+  /** Marks the panel while content runs past the footer, so the fade above the footer only appears when there is more to scroll to. */
+  private updateOverflow(): void {
+    const root = this.root
+    root.dataset.overflow = String(root.scrollHeight - root.scrollTop - root.clientHeight > 6)
   }
 
   show(slideIndex: number, stepIndex: number): void {
@@ -50,12 +58,8 @@ export class Deck {
       this.root.appendChild(el('p', { className: 'text-[var(--ink-2)]', text: 'This slide could not be loaded from the fact sheet.' }))
       return
     }
-    const header = el('header', { className: 'mb-5' }, [
-      el('h1', {
-        id: 'slide-title',
-        className: slide.number === 1 ? 't-display text-[clamp(2.1rem,2.7vw+0.6rem,3.6rem)]' : 't-display text-[clamp(1.75rem,1.75vw+0.8rem,2.8rem)]',
-        text: slide.title,
-      }),
+    const header = el('header', { className: 'deck-header mb-5', data: { opening: String(slide.number === 1), later: 'false' } }, [
+      el('h1', { id: 'slide-title', className: 'deck-title t-display', text: slide.title }),
       slide.subtitle ? el('p', { className: 'mt-2 text-[1.05rem] font-semibold text-[var(--ink-2)] [font-stretch:108%]', text: slide.subtitle }) : null,
       slide.titleNote ? el('p', { className: 't-cite mt-3 text-[0.82rem]', text: slide.titleNote }) : null,
     ])
@@ -63,7 +67,7 @@ export class Deck {
     this.facts = slide.steps.map((step, index) => {
       const body = el('div', { className: 'fact__body mt-1.5 pl-[1.7rem]' }, [
         el('p', { className: 'text-[clamp(1rem,0.6vw+0.62rem,1.3rem)] leading-[1.42] max-w-[60ch]' }, [richText(step.body)]),
-        step.note ? el('p', { className: 't-cite mt-1.5 text-[0.8rem]', text: step.note }) : null,
+        step.note ? el('p', { className: 'presenter-note mt-1.5', text: step.note }) : null,
         step.cites.length > 0
           ? el('p', { className: 't-cite mt-1.5 text-[0.78rem]', text: step.cites.map((cite) => `(${cite})`).join(' ') })
           : null,
@@ -96,11 +100,9 @@ export class Deck {
       { className: 'ctl ctl--solid', attrs: { type: 'button' }, on: { click: () => this.callbacks.next() } },
       ['Next', icon('arrow-right')],
     )
-    const footer = el('footer', { className: 'deck-footer mt-6 flex flex-wrap items-center gap-x-3 gap-y-2' }, [
-      this.previousButton,
-      this.nextButton,
-      this.counter,
-      el('span', { className: 't-cite ml-auto text-right text-[0.74rem] leading-snug max-w-[28rem]' }, [
+    const footer = el('footer', { className: 'deck-footer mt-6' }, [
+      el('div', { className: 'flex flex-wrap items-center gap-x-3 gap-y-2' }, [this.previousButton, this.nextButton, this.counter]),
+      el('p', { className: 'presenter-note mt-2' }, [
         el('span', { className: 'num', text: `${formatMinutes(slide.minutes)} planned. ` }),
         slide.lessonLink,
       ]),
@@ -118,6 +120,8 @@ export class Deck {
   private reveal(stepIndex: number): void {
     const slide = this.slide
     if (!slide) return
+    const header = this.root.querySelector<HTMLElement>('.deck-header')
+    if (header) header.dataset.later = String(stepIndex > 0)
     this.facts.forEach((fact, index) => {
       fact.dataset.state = index < stepIndex ? 'past' : index === stepIndex ? 'current' : 'future'
       const button = fact.querySelector('button')
@@ -128,6 +132,7 @@ export class Deck {
     })
     const current = this.facts[stepIndex]
     if (current) current.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    this.updateOverflow()
     if (this.counter) this.counter.textContent = `Step ${stepIndex + 1} of ${slide.steps.length}`
     const lastSlide = this.slideIndex >= this.data.slides.length - 1
     const lastStep = stepIndex >= slide.steps.length - 1

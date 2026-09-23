@@ -10,6 +10,7 @@ export interface AppState {
   powerOn: boolean
   sweeping: boolean
   deckHidden: boolean
+  notes: boolean
   blackout: boolean
   reducedMotion: boolean
   webgl: boolean

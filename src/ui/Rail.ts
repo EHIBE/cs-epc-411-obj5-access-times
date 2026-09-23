@@ -22,7 +22,7 @@ export class Rail {
 
   constructor(root: HTMLElement, slides: Slide[], onJump: (slide: number) => void) {
     this.slides = slides
-    this.track = el('ol', { className: 'relative flex h-full min-w-0 flex-1' })
+    this.track = el('ol', { className: 'rail-track relative flex h-full min-w-0 flex-1' })
     slides.forEach((slide, index) => {
       const fill = el('span', { className: 'rail-seg__fill' })
       const segment = el(
@@ -34,8 +34,8 @@ export class Rail {
         },
         [
           el('span', { className: 'rail-seg__bar' }, [fill]),
-          el('span', { className: 'num mr-1.5 text-[0.74rem] font-bold', text: String(slide.number) }),
-          el('span', { className: 'truncate text-[0.72rem] font-medium [font-stretch:88%]', text: slide.shortTitle }),
+          el('span', { className: 'rail-seg__number num', text: String(slide.number) }),
+          el('span', { className: 'rail-seg__title', text: slide.shortTitle }),
         ],
       )
       this.segments.push(segment)
@@ -53,7 +53,7 @@ export class Rail {
     )
     root.append(
       this.track,
-      el('div', { className: 'flex items-center gap-1 border-l border-[var(--rule)] pl-3 pr-[var(--gutter)]' }, [
+      el('div', { className: 'rail-clock' }, [
         this.playButton,
         this.clock,
         el('span', { className: 'num t-cite text-[0.78rem]', text: '/ 10:00' }),

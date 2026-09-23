@@ -6,8 +6,8 @@ import type { DiskPhase } from './objects/HardDiskSpecimen'
 import type { TapePhase } from './objects/TapeSpecimen'
 import { Annotations } from './objects/Annotations'
 import { DepthColumn } from './objects/DepthColumn'
-import { ParticleField } from './objects/ParticleField'
 import { ProbeSweep } from './objects/ProbeSweep'
+import { SparkBurst } from './objects/SparkBurst'
 import { SpecimenStage } from './objects/SpecimenStage'
 import { StrataStack } from './objects/StrataStack'
 import { CameraRig } from './scenes/CameraRig'
@@ -48,7 +48,7 @@ interface Stage {
   environment: Environment
   stack: StrataStack
   column: DepthColumn
-  particles: ParticleField
+  sparks: SparkBurst
   sweep: ProbeSweep
   annotations: Annotations
   specimens: SpecimenStage
@@ -99,10 +99,10 @@ function buildStage(
   const manager = new SceneManager(canvas)
   const rig = new CameraRig(canvas)
   const lighting = new Lighting(manager.scene)
-  const environment = new Environment(manager.scene)
+  const environment = new Environment(manager.scene, manager.maxAnisotropy)
   const stack = new StrataStack(data.devices, domain)
-  const column = new DepthColumn()
-  const particles = new ParticleField(stack.strata, domain)
+  const column = new DepthColumn(manager.maxAnisotropy)
+  const sparks = new SparkBurst()
   const sweep = new ProbeSweep()
   const yFor = (id: string): number => {
     const device = data.devices.find((entry) => entry.id === id)
@@ -114,16 +114,19 @@ function buildStage(
       return { id: tier.id, top: Math.max(...ys) + 0.6, bottom: Math.min(...ys) - 0.6 }
     }),
   )
-  const specimens = new SpecimenStage({
-    die: { register: colorOf('register'), l1: colorOf('l1'), l2: colorOf('l2'), l3: colorOf('l3'), dram: colorOf('dram') },
-    hdd: colorOf('hdd-7200'),
-    trio: [colorOf('hdd-5400'), colorOf('hdd-7200'), colorOf('hdd-15k')],
-    sata: colorOf('sata'),
-    nvme: colorOf('nvme'),
-    optical: colorOf('optical'),
-    tape: colorOf('tape'),
-  })
-  manager.instrument.add(stack.group, column.group, particles.points, sweep.group, annotations.group, specimens.group)
+  const specimens = new SpecimenStage(
+    {
+      die: { register: colorOf('register'), l1: colorOf('l1'), l2: colorOf('l2'), l3: colorOf('l3'), dram: colorOf('dram') },
+      hdd: colorOf('hdd-7200'),
+      trio: [colorOf('hdd-5400'), colorOf('hdd-7200'), colorOf('hdd-15k')],
+      sata: colorOf('sata'),
+      nvme: colorOf('nvme'),
+      optical: colorOf('optical'),
+      tape: colorOf('tape'),
+    },
+    (id, target) => stack.anchor(id, target),
+  )
+  manager.instrument.add(stack.group, column.group, sparks.points, sweep.group, annotations.group, specimens.group)
   const layer = new LabelLayer(byId('labels'), bySvgId('leaders'))
   const labels = new SceneLabels({
     layer,
@@ -152,7 +155,7 @@ function buildStage(
     rig,
     stack,
     column,
-    particles,
+    sparks,
     sweep,
     annotations,
     specimens,
@@ -161,7 +164,7 @@ function buildStage(
     clock,
     reducedMotion: () => store.get().reducedMotion,
   })
-  return { manager, rig, lighting, environment, stack, column, particles, sweep, annotations, specimens, layer, labels, picker, director }
+  return { manager, rig, lighting, environment, stack, column, sparks, sweep, annotations, specimens, layer, labels, picker, director }
 }
 
 /** Boots the presentation: data, interface, 3D stage, input and the render loop, each guarded so one failure never takes down the rest. */
@@ -187,6 +190,7 @@ function start(): void {
     powerOn: true,
     sweeping: false,
     deckHidden: false,
+    notes: false,
     blackout: false,
     reducedMotion: prefersReducedMotion(),
     webgl: true,
@@ -201,7 +205,9 @@ function start(): void {
   const drawer = new Drawer(byId<HTMLDialogElement>('drawer'), data)
   const table = new MasterTable(byId<HTMLDialogElement>('table-dialog'), data, colorOf, (id) => store.set({ selected: id }))
   const help = new HelpDialog(byId<HTMLDialogElement>('help'))
-  const hint = new ControlsHint(byId('hint'))
+  const hint = new ControlsHint(byId('hint'), (rect) => {
+    stage?.layer.setExclusion(rect ? { left: rect.left - 12, top: rect.top - 12 } : null)
+  })
   const context: FigureContext = {
     data,
     colorOf,
@@ -260,6 +266,7 @@ function start(): void {
     openQuestions: () => drawer.open('questions'),
     openSources: () => drawer.open('sources'),
     toggleDeck: () => store.set({ deckHidden: !store.get().deckHidden }),
+    toggleNotes: () => store.set({ notes: !store.get().notes }),
     toggleTheme,
     toggleFullscreen,
     openHelp: () => help.open(),
@@ -317,10 +324,10 @@ function start(): void {
     stage.manager.applyPalette(palette)
     stage.lighting.applyPalette(palette)
     stage.environment.applyPalette(palette)
-    stage.stack.applyPalette(palette.ground, palette.line, palette.edgeOpacity)
-    stage.column.applyPalette(palette.ink, palette.tick)
-    stage.particles.applyPalette(palette.ground, palette.dark, palette.inkHex)
-    stage.sweep.applyPalette(palette.ink)
+    stage.stack.applyPalette(palette.ground, palette.line, palette.edgeOpacity, palette.hatchOpacity)
+    stage.column.applyPalette(palette.ink, palette.tick, palette.line)
+    stage.sparks.applyPalette(palette.ground, palette.dark)
+    stage.sweep.applyPalette(palette.ink, palette.dark)
     stage.annotations.applyPalette(palette.ink, palette.dark)
     stage.specimens.applyPalette(new Color(palette.inkHex), palette.dark)
   }
@@ -338,11 +345,13 @@ function start(): void {
       if (state.selected) insets.bottom += Math.min(specRoot.offsetHeight, height * 0.72)
       else if (!state.deckHidden) insets.bottom += leftPanel.offsetHeight
     } else {
-      if (!state.deckHidden) insets.left = leftPanel.offsetWidth * 0.94
+      if (!state.deckHidden) insets.left = leftPanel.offsetWidth
       if (state.selected) insets.right = specRoot.offsetWidth + 24
     }
-    stage.rig.setFrame(insets, immediate)
-    stage.layer.setBounds(topbar + 6, height - insets.bottom - 6)
+    const rem = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
+    const bias = !mobile && stage.labels.reservesColumn ? Math.min(19 * rem, width * 0.22) : 0
+    stage.rig.setFrame(insets, immediate, bias)
+    stage.layer.setBounds(topbar + 8, height - insets.bottom - 8, width - insets.right - 8)
   }
 
   const resize = (): void => {
@@ -406,10 +415,15 @@ function start(): void {
       topBar.setTheme(state.theme === 'dark')
       applyScenePalette()
     }
+    if (first || changed(state, previous, 'notes')) {
+      document.body.dataset.notes = state.notes ? 'on' : 'off'
+      topBar.setNotes(state.notes)
+      if (!first) toast.show(state.notes ? 'Presenter notes shown: timings, lesson links and cues' : 'Presenter notes hidden')
+    }
     if (first || changed(state, previous, 'blackout')) {
       blackout.dataset.on = String(state.blackout)
     }
-    if (first || changed(state, previous, 'deckHidden', 'selected', 'slide')) {
+    if (first || changed(state, previous, 'deckHidden', 'selected', 'slide', 'step')) {
       window.requestAnimationFrame(() => updateFrame(first))
     }
   }
@@ -509,6 +523,9 @@ function start(): void {
       case 'e':
         handled(() => store.set({ deckHidden: !state.deckHidden }))
         break
+      case 'n':
+        handled(() => store.set({ notes: !state.notes }))
+        break
       case 'r':
         handled(() => stage?.director.resetView())
         break
@@ -579,7 +596,7 @@ function start(): void {
       stage.rig.update(dt)
       stage.stack.update(dt, time)
       stage.column.update(time)
-      stage.particles.update(dt, time, reduced ? 0.3 : 1)
+      stage.sparks.update(dt)
       stage.sweep.update(dt)
       stage.annotations.update(dt)
       stage.specimens.update(dt)
@@ -607,6 +624,8 @@ function start(): void {
   if (!stage) boot.done()
 
   void document.fonts.ready.then(() => {
+    stage?.column.refreshEngraving()
+    applyScenePalette()
     stage?.layer.touchAll()
     updateFrame(true)
   })

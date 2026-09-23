@@ -3,7 +3,7 @@ import type { Device, HumanScaleEntry } from '../data/types'
 import type { Annotations } from '../objects/Annotations'
 import type { DepthColumn } from '../objects/DepthColumn'
 import type { ProbeSweep } from '../objects/ProbeSweep'
-import type { SpecimenId, SpecimenStage } from '../objects/SpecimenStage'
+import { SPECIMEN_DETAILS, type SpecimenId, type SpecimenStage } from '../objects/SpecimenStage'
 import type { StrataStack } from '../objects/StrataStack'
 import { speedColor } from '../utils/color'
 import { padRank } from '../utils/format'
@@ -34,14 +34,19 @@ export interface SceneLabelSources {
   lessonNames: { id: string; name: string; summary: string }[]
 }
 
-/** Builds and steers every DOM label attached to the 3D scene: device callouts, the column's two scales, specimen parts, measurements and the probe stamp. */
+const CALLOUT_COLUMN_OFFSET = 44
+
+/** Builds and steers every DOM label attached to the 3D scene: device callouts, the column's two scales, specimen parts and detail marks, measurements and the probe readout. */
 export class SceneLabels {
   private readonly sources: SceneLabelSources
   private readonly callouts = new Map<string, Callout>()
   private readonly note: HTMLElement
   private readonly probe: HTMLElement
+  private readonly detailMark: HTMLElement
+  private readonly detailTitles = new Map<SpecimenId, HTMLElement>()
   private readonly specimenLabelIds: { id: string; specimen: SpecimenId; visible: () => boolean }[] = []
   private readonly technicalTicks: HTMLElement[] = []
+  private readonly epochs: { id: string; from: number; to: number }[] = []
   private mode: CalloutMode = 'all'
   private focus: Set<string> | null = null
   private hovered: string | null = null
@@ -54,35 +59,29 @@ export class SceneLabels {
   private volatility = false
   private probeVisible = false
   private compact = false
-  private readonly epochIds: string[] = []
+  private detailFor: SpecimenId | null = null
 
   constructor(sources: SceneLabelSources) {
     this.sources = sources
     const { layer, stack, column, specimens, annotations, sweep } = sources
     const humanById = new Map(sources.humanEntries.map((entry) => [entry.id, entry]))
+    layer.alignColumn('callouts', CALLOUT_COLUMN_OFFSET)
 
     for (const device of sources.devices) {
+      const tint = speedColor(speedT(placementLog(device), sources.domain))
       const value = el('span', { className: 'callout__value' })
-      const element = el(
-        'div',
-        { className: 'callout', style: { '--swatch': speedColor(speedT(placementLog(device), sources.domain)) } },
-        [
-          el('span', { className: 'callout__rank', attrs: { 'aria-hidden': 'true' } }),
-          el('span', { className: 'callout__name' }, [
-            el('span', { className: 'num', text: padRank(device.rank), style: { color: 'var(--ink-3)', 'margin-right': '0.35em' } }),
-            device.shortName,
-          ]),
-          value,
-        ],
-      )
+      const name = el('span', { className: 'callout__name' }, [el('span', { className: 'callout__rank num', text: padRank(device.rank) }), device.shortName])
+      const element = el('div', { className: 'callout', style: { '--tint': tint } }, [name, value])
       this.callouts.set(device.id, { device, element, value, human: humanById.get(device.id) })
       layer.add({
         id: `callout:${device.id}`,
         element,
         anchor: (target) => stack.anchor(device.id, target),
         placement: 'right',
-        offset: 30,
+        offset: CALLOUT_COLUMN_OFFSET,
         leader: true,
+        tint,
+        shoulder: (node) => node.offsetHeight,
         group: 'callouts',
       })
     }
@@ -95,22 +94,24 @@ export class SceneLabels {
         return column.group.localToWorld(target)
       }
       if (label.kind === 'note') {
-        layer.add({ id: 'column:note', element: this.note, anchor, placement: 'above', offset: 6, visible: true })
+        layer.add({ id: 'column:note', element: this.note, anchor, placement: 'above', offset: 8, visible: true })
         continue
       }
       const className =
         label.kind === 'epoch' ? 'tick-label tick-label--epoch' : label.kind === 'human' ? 'tick-label tick-label--human' : 'tick-label'
       const element = el('div', { className, text: label.text })
       if (label.kind !== 'human') this.technicalTicks.push(element)
-      if (label.kind === 'epoch') this.epochIds.push(`column:${label.id}`)
+      if (label.kind === 'epoch' && label.from !== undefined && label.to !== undefined) {
+        this.epochs.push({ id: `column:${label.id}`, from: label.from, to: label.to })
+      }
       layer.add({
         id: `column:${label.id}`,
         element,
         anchor,
         placement: label.kind === 'epoch' ? 'rotated' : label.kind === 'human' ? 'right' : 'left',
-        offset: label.kind === 'epoch' ? 62 : 7,
+        offset: label.kind === 'epoch' ? 70 : 8,
         group: label.kind === 'human' ? 'human' : label.kind === 'decade' ? 'decades' : undefined,
-        visible: label.kind !== 'human',
+        visible: label.kind === 'decade',
       })
     }
 
@@ -118,9 +119,8 @@ export class SceneLabels {
       for (const label of specimen.labels) {
         const id = `specimen:${specimenId}:${label.id}`
         const element = el('div', {
-          className: 'tick-label tick-label--specimen',
+          className: label.tone === 'strong' ? 'tick-label tick-label--specimen tick-label--strong' : 'tick-label tick-label--specimen',
           text: label.text,
-          style: label.tone === 'strong' ? { 'font-weight': '760' } : {},
         })
         layer.add({
           id,
@@ -134,6 +134,28 @@ export class SceneLabels {
       }
     }
 
+    this.detailMark = el('div', { className: 'detail-mark num' })
+    layer.add({
+      id: 'detail:mark',
+      element: this.detailMark,
+      anchor: (target) => (specimens.detailAmount > 0.6 ? target.copy(specimens.leaderStart) : null),
+      placement: 'center',
+      visible: true,
+    })
+    for (const specimenId of Object.keys(specimens.all) as SpecimenId[]) {
+      const title = el('div', { className: 'tick-label tick-label--detail', text: SPECIMEN_DETAILS[specimenId].title })
+      this.detailTitles.set(specimenId, title)
+      layer.add({
+        id: `detail:title:${specimenId}`,
+        element: title,
+        anchor: (target) => (specimens.active === specimenId && specimens.detailAmount > 0.6 ? target.copy(specimens.leaderStart) : null),
+        placement: 'aboveRight',
+        offset: 26,
+        group: `specimen:${specimenId}`,
+        visible: true,
+      })
+    }
+
     for (const measure of annotations.measures) {
       layer.add({
         id: `measure:${measure.spec.id}`,
@@ -143,8 +165,8 @@ export class SceneLabels {
           target.copy(measure.anchor)
           return annotations.group.localToWorld(target)
         },
-        placement: 'right',
-        offset: 6,
+        placement: 'rotatedRight',
+        offset: 4,
       })
     }
 
@@ -160,18 +182,22 @@ export class SceneLabels {
         },
         placement: 'right',
         offset: 8,
+        group: 'lessons',
       })
     })
 
     layer.add({
       id: 'volatility',
-      element: el('div', { className: 'tick-label tick-label--note', text: 'Above this sheet: volatile. Below: keeps its data without power.' }),
+      element: el('div', { className: 'tick-label tick-label--plain' }, ['Above this sheet: volatile.', el('br'), 'Below: keeps its data without power.']),
       anchor: (target) => {
         target.copy(annotations.volatility.anchor)
         return annotations.group.localToWorld(target)
       },
       placement: 'right',
-      offset: 10,
+      offset: CALLOUT_COLUMN_OFFSET,
+      leader: true,
+      shoulder: (node) => node.offsetHeight,
+      group: 'callouts',
     })
 
     this.probe = el('div', { className: 'tick-label tick-label--probe num' })
@@ -194,10 +220,15 @@ export class SceneLabels {
     this.refreshCallouts()
   }
 
-  /** On small screens only the pointed or focused devices keep a callout. */
+  /** On small screens every callout shrinks to its rank and name so the strata stay identifiable without covering the model. */
   setCompact(compact: boolean): void {
     if (compact === this.compact) return
     this.compact = compact
+    this.sources.layer.setVisible('column:note', !compact)
+    for (const callout of this.callouts.values()) {
+      callout.element.dataset.compact = String(compact)
+      this.sources.layer.touch(`callout:${callout.device.id}`)
+    }
     this.refreshCallouts()
   }
 
@@ -268,17 +299,34 @@ export class SceneLabels {
     return this.volatility
   }
 
-  /** Called every frame: specimen part labels follow their specimen's own phase. */
+  /** True while the current step shows callouts in a column, so the frame keeps room for them. */
+  get reservesColumn(): boolean {
+    return this.mode !== 'none' && !this.compact
+  }
+
+  /** Called every frame: specimen part labels follow their specimen's phase, the detail mark follows the active specimen, and each epoch name shows only where its span has room for it. */
   update(): void {
-    const { layer, specimens } = this.sources
+    const { layer, specimens, devices } = this.sources
     const active = specimens.active
     for (const entry of this.specimenLabelIds) {
       layer.setVisible(entry.id, entry.specimen === active && entry.visible())
     }
-    const nano = layer.projectedY('column:decade:-9')
-    const milli = layer.projectedY('column:decade:-3')
-    const roomy = nano !== null && milli !== null && Math.abs(milli - nano) / 6 > 36 && !this.compact
-    for (const id of this.epochIds) layer.setVisible(id, roomy)
+    if (active !== this.detailFor) {
+      this.detailFor = active
+      if (active) {
+        const detail = SPECIMEN_DETAILS[active]
+        const source = devices.find((device) => device.id === detail.source)
+        this.detailMark.textContent = source ? padRank(source.rank) : ''
+        layer.touch('detail:mark')
+      }
+    }
+    for (const epoch of this.epochs) {
+      const top = layer.projectedY(`column:decade:${epoch.from}`)
+      const bottom = layer.projectedY(`column:decade:${epoch.to}`)
+      const size = layer.sizeOf(epoch.id)
+      const span = top !== null && bottom !== null ? Math.abs(bottom - top) : 0
+      layer.setVisible(epoch.id, !this.compact && size !== null && span > size.width + 18)
+    }
   }
 
   private refreshAll(): void {
@@ -288,7 +336,7 @@ export class SceneLabels {
     }
     this.note.replaceChildren(this.human ? 'If 1 ns = 1 second…' : 'Access time, log scale')
     layer.touch('column:note')
-    for (const node of this.technicalTicks) node.style.color = this.human ? 'var(--ink-3)' : ''
+    for (const node of this.technicalTicks) node.dataset.muted = String(this.human)
     this.refreshValues()
     this.refreshCallouts()
   }
@@ -317,7 +365,7 @@ export class SceneLabels {
     for (const [id, callout] of this.callouts) {
       const pointed = id === this.hovered || id === this.selected
       const inFocus = !this.focus || this.focus.has(id)
-      const visible = pointed || (!this.compact && this.mode === 'all') || (this.mode === 'focus' && inFocus && (!this.compact || this.focus !== null))
+      const visible = pointed || this.mode === 'all' || (this.mode === 'focus' && inFocus)
       this.sources.layer.setVisible(`callout:${id}`, visible)
       callout.element.dataset.state = pointed || (this.focus && inFocus) ? 'focus' : this.focus && !inFocus ? 'dim' : ''
     }

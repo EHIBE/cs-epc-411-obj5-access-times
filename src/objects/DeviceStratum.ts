@@ -1,6 +1,7 @@
 import {
   BoxGeometry,
   BufferGeometry,
+  CanvasTexture,
   Color,
   Float32BufferAttribute,
   Group,
@@ -9,13 +10,16 @@ import {
   LineSegments,
   Mesh,
   MeshStandardMaterial,
+  RepeatWrapping,
   Shape,
+  Vector2,
   Vector3,
+  type Texture,
 } from 'three'
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js'
-import type { Device } from '../data/types'
+import type { Device, TierId } from '../data/types'
 import { brighten } from '../utils/color'
-import { clamp, Spring } from '../utils/math'
+import { clamp, seededRandom, Spring } from '../utils/math'
 import { PLATE } from '../utils/scale'
 
 export interface StratumSpec {
@@ -31,6 +35,39 @@ export interface StratumSpec {
 
 const TILT_RADIANS = (14 * Math.PI) / 180
 const LOST_HEX = '#6b737b'
+const GRAIN_SIZE = 256
+
+let grain: Texture | null = null
+
+/** The satin finish as a normal map: rows of fine brushed streaks drawn once on a small canvas, lazily, and shared by every plate. */
+function satinGrain(): Texture {
+  if (grain) return grain
+  const canvas = document.createElement('canvas')
+  canvas.width = GRAIN_SIZE
+  canvas.height = GRAIN_SIZE
+  const context = canvas.getContext('2d')
+  if (context) {
+    const image = context.createImageData(GRAIN_SIZE, GRAIN_SIZE)
+    const random = seededRandom(4411)
+    let drift = 0
+    for (let y = 0; y < GRAIN_SIZE; y += 1) {
+      drift = drift * 0.55 + (random() - 0.5) * 0.9
+      for (let x = 0; x < GRAIN_SIZE; x += 1) {
+        const tilt = clamp(drift + (random() - 0.5) * 0.18, -1, 1)
+        const offset = (y * GRAIN_SIZE + x) * 4
+        image.data[offset] = 128
+        image.data[offset + 1] = Math.round(128 + tilt * 110)
+        image.data[offset + 2] = 255
+        image.data[offset + 3] = 255
+      }
+    }
+    context.putImageData(image, 0, 0)
+  }
+  grain = new CanvasTexture(canvas)
+  grain.wrapS = RepeatWrapping
+  grain.wrapT = RepeatWrapping
+  return grain
+}
 
 /** Builds the top and bottom rounded-rectangle outlines of a plate as line segments: the single hairline weight of the drawing. */
 function outlineGeometry(width: number, depth: number, thickness: number): BufferGeometry {
@@ -62,12 +99,63 @@ function outlineGeometry(width: number, depth: number, thickness: number): Buffe
   return geometry
 }
 
-/** One device drawn as a satin anodized stratum: PBR body, hairline outline, and every animated state it can be in. */
+/** Lithology hatching for the cut face, one pattern per family as a geological section would fill its beds: ticks, dashes, dots, diagonals and brickwork. */
+function hatchGeometry(tier: TierId, width: number, depth: number, thickness: number): BufferGeometry {
+  const x0 = -width / 2 + PLATE.radius * 1.6
+  const x1 = width / 2 - PLATE.radius * 1.6
+  const y0 = -thickness / 2 + 0.07
+  const y1 = thickness / 2 - 0.07
+  const mid = (y0 + y1) / 2
+  const z = depth / 2 + 0.012
+  const out: number[] = []
+  const seg = (ax: number, ay: number, bx: number, by: number): void => {
+    out.push(ax, ay, z, bx, by, z)
+  }
+  if (tier === 'cpu') {
+    for (let x = x0 + 0.08; x < x1; x += 0.2) seg(x, y0, x, y1)
+  } else if (tier === 'memory') {
+    for (const [row, shift] of [
+      [y0 + (y1 - y0) * 0.3, 0],
+      [y0 + (y1 - y0) * 0.72, 0.21],
+    ] as const) {
+      for (let x = x0 + shift; x + 0.26 < x1; x += 0.42) seg(x, row, x + 0.26, row)
+    }
+  } else if (tier === 'flash') {
+    for (const [row, shift] of [
+      [y0 + (y1 - y0) * 0.28, 0],
+      [y0 + (y1 - y0) * 0.74, 0.1],
+    ] as const) {
+      for (let x = x0 + shift; x + 0.05 < x1; x += 0.2) seg(x, row, x + 0.05, row)
+    }
+  } else if (tier === 'mechanical') {
+    const rise = y1 - y0
+    for (let x = x0 - rise; x < x1; x += 0.24) {
+      const ax = Math.max(x, x0)
+      const bx = Math.min(x + rise, x1)
+      if (bx <= ax) continue
+      seg(ax, y0 + (ax - x), bx, y0 + (bx - x))
+    }
+  } else {
+    seg(x0, mid, x1, mid)
+    let upper = true
+    for (let x = x0 + 0.18; x < x1; x += 0.3) {
+      if (upper) seg(x, mid, x, y1)
+      else seg(x, y0, x, mid)
+      upper = !upper
+    }
+  }
+  const geometry = new BufferGeometry()
+  geometry.setAttribute('position', new Float32BufferAttribute(out, 3))
+  return geometry
+}
+
+/** One device drawn as a satin anodized stratum: PBR body with a brushed grain, a hairline outline, a hatched cut face, and every animated state it can be in. */
 export class DeviceStratum {
   readonly device: Device
   readonly group = new Group()
   readonly body: Mesh<RoundedBoxGeometry, MeshStandardMaterial>
   readonly outline: LineSegments<BufferGeometry, LineBasicMaterial | LineDashedMaterial>
+  readonly hatch: LineSegments<BufferGeometry, LineBasicMaterial> | null
   readonly baseY: number
   readonly width: number
   readonly depth: number
@@ -82,6 +170,7 @@ export class DeviceStratum {
   readonly flash = new Spring(0, 55, 8)
   readonly energy = new Spring(1, 60, 13)
   readonly entry = new Spring(0, 95, 13)
+  readonly presence = new Spring(1, 90, 18)
   float = 0
   enterAt = 0
   entered = true
@@ -91,6 +180,8 @@ export class DeviceStratum {
   private readonly ground = new Color('#e6eaed')
   private readonly working = new Color()
   private readonly glow: number
+  private edgeOpacity = 0.6
+  private hatchOpacity = 0.34
   private readonly extensions: Mesh<BoxGeometry, MeshStandardMaterial>[] = []
 
   constructor(spec: StratumSpec) {
@@ -108,23 +199,32 @@ export class DeviceStratum {
       roughness: 0.4,
       emissive: this.baseColor.clone(),
       emissiveIntensity: spec.glow,
-      transparent: spec.ghost,
+      normalMap: satinGrain(),
+      normalScale: new Vector2(0.12, 0.12),
+      transparent: true,
       opacity: spec.ghost ? 0.52 : 1,
       depthWrite: !spec.ghost,
     })
-    this.body = new Mesh(new RoundedBoxGeometry(spec.width, PLATE.thickness, spec.depth, 3, PLATE.radius), material)
+    this.body = new Mesh(new RoundedBoxGeometry(spec.width, PLATE.thickness, spec.depth, 4, PLATE.radius), material)
     this.body.castShadow = !spec.ghost
     this.body.receiveShadow = true
     this.body.userData.deviceId = spec.device.id
     this.body.name = `stratum:${spec.device.id}`
 
     const lineMaterial = spec.unrated || spec.ghost
-      ? new LineDashedMaterial({ color: 0x26303a, dashSize: 0.34, gapSize: 0.22, transparent: true, opacity: 0.6 })
-      : new LineBasicMaterial({ color: 0x26303a, transparent: true, opacity: 0.55 })
+      ? new LineDashedMaterial({ color: 0x2e3945, dashSize: 0.34, gapSize: 0.22, transparent: true, opacity: 0.6 })
+      : new LineBasicMaterial({ color: 0x2e3945, transparent: true, opacity: 0.6 })
     this.outline = new LineSegments(outlineGeometry(spec.width, spec.depth, PLATE.thickness), lineMaterial)
     if (lineMaterial instanceof LineDashedMaterial) this.outline.computeLineDistances()
+    this.hatch = spec.ghost
+      ? null
+      : new LineSegments(
+          hatchGeometry(spec.device.tier, spec.width, spec.depth, PLATE.thickness),
+          new LineBasicMaterial({ color: 0x2e3945, transparent: true, opacity: 0.34 }),
+        )
 
     this.group.add(this.body, this.outline)
+    if (this.hatch) this.group.add(this.hatch)
     let reach = spec.width / 2
     if (spec.device.capacity.unlimited) {
       const pieces = [0.46, 0.26, 0.12]
@@ -155,10 +255,12 @@ export class DeviceStratum {
     this.group.userData.deviceId = spec.device.id
   }
 
-  setPalette(ground: Color, line: Color, edgeOpacity: number): void {
+  setPalette(ground: Color, line: Color, edgeOpacity: number, hatchOpacity: number): void {
     this.ground.copy(ground)
     this.outline.material.color.copy(line)
-    this.outline.material.opacity = this.outline.material instanceof LineDashedMaterial ? edgeOpacity + 0.1 : edgeOpacity
+    this.edgeOpacity = this.outline.material instanceof LineDashedMaterial ? edgeOpacity + 0.1 : edgeOpacity
+    this.hatchOpacity = hatchOpacity
+    if (this.hatch) this.hatch.material.color.copy(line)
   }
 
   /** World-space point at the plate's right edge, where its callout leader starts. */
@@ -184,7 +286,7 @@ export class DeviceStratum {
       this.entry.snap(26)
       this.entry.target = 0
     }
-    for (const spring of [this.lift, this.scale, this.tilt, this.fan, this.emphasis, this.hover, this.flash, this.energy, this.entry]) {
+    for (const spring of [this.lift, this.scale, this.tilt, this.fan, this.emphasis, this.hover, this.flash, this.energy, this.entry, this.presence]) {
       spring.step(dt)
     }
     const s = this.scale.value
@@ -198,17 +300,27 @@ export class DeviceStratum {
     const energy = clamp(this.energy.value, 0, 1)
     const flash = Math.max(0, this.flash.value)
     this.working.copy(this.baseColor).lerp(this.brightColor, hover)
-    this.working.lerp(this.ground, (1 - emphasis) * 0.74)
+    this.working.lerp(this.ground, (1 - emphasis) * 0.8)
     this.working.lerp(this.lostColor, 1 - energy)
     material.color.copy(this.working)
     material.emissive.copy(this.baseColor)
-    material.emissiveIntensity = this.glow * energy * (0.35 + 0.65 * emphasis) + flash * 0.85
-    if (this.ghost) material.opacity = 0.34 + 0.34 * emphasis
-    const outlineOpacity = this.outline.material.opacity
-    this.outline.visible = outlineOpacity > 0.01
+    material.emissiveIntensity = this.glow * energy * (0.3 + 0.7 * emphasis) + flash * 0.85
+    const presence = clamp(this.presence.value, 0, 1)
+    const solid = this.ghost ? 0.3 + 0.36 * emphasis : 1
+    material.opacity = solid * (0.03 + 0.97 * presence)
+    material.depthWrite = !this.ghost && presence > 0.5
+    this.body.castShadow = !this.ghost && presence > 0.5
+    this.body.visible = material.opacity > 0.02
+    const line = 0.3 + 0.7 * emphasis
+    this.outline.material.opacity = this.edgeOpacity * (0.42 + (line - 0.42) * presence)
+    this.outline.visible = this.outline.material.opacity > 0.01
+    if (this.hatch) {
+      this.hatch.material.opacity = this.hatchOpacity * emphasis * presence * (0.4 + 0.6 * energy)
+      this.hatch.visible = this.hatch.material.opacity > 0.02
+    }
     for (const piece of this.extensions) {
       piece.material.color.copy(this.working)
-      piece.material.opacity = (piece.userData.baseOpacity as number) * (0.4 + 0.6 * emphasis)
+      piece.material.opacity = (piece.userData.baseOpacity as number) * (0.4 + 0.6 * emphasis) * presence
     }
   }
 

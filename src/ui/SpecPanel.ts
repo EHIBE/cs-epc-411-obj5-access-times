@@ -1,6 +1,6 @@
 import type { Device, FactSheet, HumanScaleEntry } from '../data/types'
 import { tierOf } from '../utils/categories'
-import { speedGradientCss } from '../utils/color'
+import { speedColor } from '../utils/color'
 import { padRank } from '../utils/format'
 import { clamp, invLerp } from '../utils/math'
 import { AXIS, placementLog, whiskerSpan } from '../utils/scale'
@@ -46,7 +46,7 @@ export class SpecPanel {
     this.callbacks = callbacks
     this.colorOf = colorOf
     this.humanById = new Map(data.humanScale.entries.map((entry) => [entry.id, entry]))
-    this.heading = el('h2', { id: 'spec-name', className: 't-display text-[clamp(1.35rem,1vw+0.85rem,1.9rem)] pr-10', attrs: { tabindex: -1 } })
+    this.heading = el('h2', { id: 'spec-name', className: 'spec-heading t-display text-[clamp(1.35rem,1vw+0.85rem,1.9rem)] pr-10', attrs: { tabindex: -1 } })
     this.body = el('div', { className: 'min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-5 pt-5' })
     const close = el(
       'button',
@@ -55,7 +55,7 @@ export class SpecPanel {
     )
     const footer = el('footer', { className: 'flex items-center justify-between gap-2 border-t border-[var(--rule)] px-4 py-2.5' }, [
       el('button', { className: 'ctl', attrs: { type: 'button' }, on: { click: () => callbacks.step(-1) } }, [icon('caret-left'), 'Faster device']),
-      el('span', { className: 't-cite text-[0.72rem]' }, [el('kbd', { className: 'keycap', text: '[' }), ' ', el('kbd', { className: 'keycap', text: ']' })]),
+      el('span', { className: 't-cite text-[0.78rem]' }, [el('kbd', { className: 'keycap', text: '[' }), ' ', el('kbd', { className: 'keycap', text: ']' })]),
       el('button', { className: 'ctl', attrs: { type: 'button' }, on: { click: () => callbacks.step(1) } }, ['Slower device', icon('caret-right')]),
     ])
     root.setAttribute('role', 'dialog')
@@ -100,18 +100,15 @@ export class SpecPanel {
     const tier = tierOf(device.tier)
     const color = this.colorOf(device.id)
     const human = this.humanById.get(device.id)
-    this.heading.textContent = device.name
+    this.heading.replaceChildren(
+      el('span', { className: 'spec-heading__rank num', text: padRank(device.rank) }),
+      el('span', { className: 'spec-heading__icon', attrs: { 'aria-hidden': 'true' } }, [deviceIcon(device.icon)]),
+      el('span', { text: device.name }),
+    )
+    this.heading.style.setProperty('--tint', color)
     const lost = device.volatile && !this.powerOn
 
-    const badge = el('div', { className: 'mb-3 flex items-center gap-2.5' }, [
-      el('span', {
-        className: 'inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-[0.85rem] font-bold text-[#131a21]',
-        style: { background: color },
-      }, [deviceIcon(device.icon), el('span', { className: 'num', text: padRank(device.rank) })]),
-      el('span', { className: 't-label text-[0.8rem] text-[var(--ink-2)]', text: `${tier.name} tier, rank ${device.rank} of ${this.data.devices.length}` }),
-    ])
-
-    const reading = el('section', { className: 'mt-4', attrs: { 'aria-label': 'Access time' } })
+    const reading = el('section', { className: 'mt-5', attrs: { 'aria-label': 'Access time' } })
     if (lost) {
       reading.append(
         el('p', { className: 't-reading text-[clamp(2rem,2vw+1rem,3rem)]', text: 'Contents lost' }),
@@ -133,7 +130,7 @@ export class SpecPanel {
     reading.appendChild(this.gauge(device))
 
     const humanRow = human && !this.human
-      ? el('p', { className: 'mt-4 rounded-lg bg-[var(--well)] px-3 py-2.5 text-[0.88rem] leading-snug' }, [
+      ? el('p', { className: 'spec-aside mt-5' }, [
           el('span', { className: 'text-[var(--ink-2)]', text: 'If 1 ns were 1 second: ' }),
           el('strong', { text: human.human }),
           human.gloss ? `, ${human.gloss}` : '',
@@ -147,6 +144,8 @@ export class SpecPanel {
       ['Volatile?', device.volatile ? 'Yes' : 'No'],
       ['Relative cost per GB', device.cost.text],
       ['Typical capacity (2026)', device.capacity.text],
+      ['Tier', tier.name],
+      ['Rank, fastest first', `${device.rank} of ${this.data.devices.length}`],
     ]
     const list = el('dl', { className: 'mt-5' }, rows.map(([term, value]) => el('div', { className: 'spec-row' }, [el('dt', { text: term }), el('dd', {}, [value])])))
 
@@ -164,7 +163,7 @@ export class SpecPanel {
 
     const modelNote = MODEL_NOTES[device.id]
     const note = modelNote
-      ? el('p', { className: 'mt-4 flex gap-2 rounded-lg border border-[var(--rule)] px-3 py-2.5 text-[0.8rem] leading-snug text-[var(--ink-2)]' }, [icon('info'), modelNote])
+      ? el('p', { className: 'spec-aside mt-5 flex gap-2 text-[0.84rem] text-[var(--ink-2)]' }, [icon('info'), modelNote])
       : null
 
     const references = device.referenceIds
@@ -204,7 +203,7 @@ export class SpecPanel {
             questions.map((question) =>
               el('li', {}, [
                 el('button', {
-                  className: 'w-full rounded-md px-2 py-1.5 text-left text-[0.84rem] leading-snug hover:bg-[var(--well)]',
+                  className: 'w-full px-2 py-1.5 text-left text-[0.86rem] leading-snug hover:bg-[var(--well)]',
                   attrs: { type: 'button' },
                   on: { click: () => this.callbacks.openQuestion(question.id) },
                 }, [el('span', { className: 'num mr-1.5 font-bold', text: `Q${question.id}` }), question.question]),
@@ -214,7 +213,7 @@ export class SpecPanel {
         ])
       : null
 
-    this.body.replaceChildren(badge, this.heading, reading, humanRow ?? '', list, use, facts ?? '', note ?? '', source, related ?? '')
+    this.body.replaceChildren(this.heading, reading, humanRow ?? '', list, use, facts ?? '', note ?? '', source, related ?? '')
   }
 
   /** The device's place on the full 13-decade axis: its range or band as a bracket, its plate as a dot. */
@@ -222,7 +221,10 @@ export class SpecPanel {
     const span = whiskerSpan(device)
     const toPercent = (log: number): number => clamp(invLerp(AXIS.logTop, AXIS.logBottom, log), 0, 1) * 100
     const point = toPercent(placementLog(device))
-    const track = el('div', { className: 'gauge mt-4', style: { background: speedGradientCss() }, attrs: { role: 'img', 'aria-label': 'Position on the access-time axis from 10 picoseconds to 1,000 seconds' } }, [
+    const decades = AXIS.logBottom - AXIS.logTop
+    const steps = Array.from({ length: decades }, (_, index) => el('span', { className: 'gauge__step', style: { background: speedColor((index + 0.5) / decades) } }))
+    const track = el('div', { className: 'gauge mt-4', attrs: { role: 'img', 'aria-label': 'Position on the access-time axis from 10 picoseconds to 1,000 seconds' } }, [
+      ...steps,
       span
         ? el('div', { className: 'gauge__range', style: { left: `${toPercent(span.from)}%`, width: `${Math.max(1.2, toPercent(span.to) - toPercent(span.from))}%` } })
         : null,
@@ -238,7 +240,7 @@ export class SpecPanel {
     ]
     const scale = el(
       'div',
-      { className: 'num relative mt-1.5 h-4 text-[0.72rem] text-[var(--ink-3)]' },
+      { className: 'num relative mt-1.5 h-4 text-[0.78rem] text-[var(--ink-3)]' },
       marks.map(([log, text], index) =>
         el('span', {
           className: 'absolute whitespace-nowrap',

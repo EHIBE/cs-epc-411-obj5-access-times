@@ -22,7 +22,7 @@ import {
   yForLog,
   type SpeedDomain,
 } from '../utils/scale'
-import { COLUMN_X } from './DepthColumn'
+import { COLUMN_HALF, COLUMN_X } from './DepthColumn'
 import { DeviceStratum, TILT } from './DeviceStratum'
 
 const HOVER_LIFT = 1
@@ -31,8 +31,8 @@ const CLEARANCE = 0.32
 
 /** Glow strength for the fastest tiers only: the brief's subtle emissive halo for CPU-side storage. */
 const glowFor = (device: Device): number => {
-  if (device.tier === 'cpu') return 0.42
-  if (device.tier === 'memory') return 0.14
+  if (device.tier === 'cpu') return 0.3
+  if (device.tier === 'memory') return 0.1
   return 0
 }
 
@@ -101,7 +101,7 @@ export class StrataStack {
     this.bandWhiskers.computeLineDistances()
     const level: number[] = []
     for (const stratum of this.strata) {
-      level.push(COLUMN_X + 0.62, stratum.baseY, 0, -stratum.width / 2 - 0.85, stratum.baseY, 0)
+      level.push(COLUMN_X + COLUMN_HALF + 0.1, stratum.baseY, 0, -stratum.width / 2 - 0.85, stratum.baseY, 0)
     }
     const levelGeometry = new BufferGeometry()
     levelGeometry.setAttribute('position', new Float32BufferAttribute(level, 3))
@@ -126,8 +126,8 @@ export class StrataStack {
     return stratum ? stratum.anchor(target) : null
   }
 
-  applyPalette(ground: Color, line: Color, edgeOpacity: number): void {
-    for (const stratum of this.strata) stratum.setPalette(ground, line, edgeOpacity)
+  applyPalette(ground: Color, line: Color, edgeOpacity: number, hatchOpacity: number): void {
+    for (const stratum of this.strata) stratum.setPalette(ground, line, edgeOpacity, hatchOpacity)
     this.whiskers.material.color.copy(line)
     this.bandWhiskers.material.color.copy(line)
     this.levels.material.color.copy(line)
@@ -149,6 +149,12 @@ export class StrataStack {
   setFocus(ids: readonly string[] | null): void {
     const focus = ids ? new Set(ids) : null
     for (const stratum of this.strata) stratum.emphasis.target = !focus || focus.has(stratum.device.id) ? 1 : 0
+  }
+
+  /** Draws every plate outside the given set as a hairline outline only, so a detail view reads against a line drawing of the section. */
+  setPresence(ids: readonly string[] | null): void {
+    const keep = ids ? new Set(ids) : null
+    for (const stratum of this.strata) stratum.presence.target = !keep || keep.has(stratum.device.id) ? 1 : 0
   }
 
   setPower(on: boolean): void {

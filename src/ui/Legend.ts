@@ -12,26 +12,24 @@ const KEY: readonly [string, string][] = [
   ['Dashed outline', 'No comparable figure for that dimension (not sold separately, a component, or pay-per-use)'],
   ['Ghosted plate', 'No single published access time; it sits inside its stated order of magnitude'],
   ['Whisker', 'The stated range beside each plate; dashed when it is an order-of-magnitude band'],
-  ['Particles', 'Circle faster around faster devices; slow tiers drift like sediment'],
+  ['Hatching', 'The front edge of each plate is hatched by family, as a geological section marks its rock types'],
+  ['Detail', 'A mechanism model drawn beside its own plate and joined to it by a leader; schematic, not to scale'],
 ]
 
-/** Bottom-left legend: the speed ramp split into the brief's five tiers with their fastest and slowest figures, plus a key to the model's encodings. */
+/** Bottom-left legend: the brief's five tiers, each drawn as the exact colours of its own plates, with their fastest and slowest figures, plus a key to the model's encodings. */
 export function mountLegend(root: HTMLElement, devices: Device[], domain: SpeedDomain): void {
   const tiers = TIERS.map((tier) => {
     const members = devicesInTier(devices, tier.id)
-    const ts = members.map((device) => speedT(placementLog(device), domain))
-    const from = Math.min(...ts)
-    const to = Math.max(...ts)
-    const band = `linear-gradient(90deg, ${speedColor(from)}, ${speedColor((from + to) / 2)}, ${speedColor(to)})`
+    const swatches = members.map((device) => el('span', { style: { background: speedColor(speedT(placementLog(device), domain)) } }))
     return el('li', { className: 'min-w-0' }, [
-      el('span', { className: 'block h-2 rounded-full', style: { background: band }, attrs: { 'aria-hidden': 'true' } }),
+      el('span', { className: 'legend-band', attrs: { 'aria-hidden': 'true' } }, swatches),
       el('span', { className: 'mt-1.5 block text-[0.76rem] font-bold leading-tight [font-stretch:92%]', text: tier.name }),
-      el('span', { className: 'num block text-[0.74rem] leading-tight text-[var(--ink-2)]', text: `${tier.fastest} to ${tier.slowest}` }),
+      el('span', { className: 'num block text-[0.78rem] leading-tight text-[var(--ink-2)]', text: `${tier.fastest} to ${tier.slowest}` }),
     ])
   })
   const key = el(
     'dl',
-    { className: 'mt-3 grid gap-1.5 border-t border-[var(--rule)] pt-2.5 text-[0.74rem] leading-snug', attrs: { id: 'model-key', hidden: true } },
+    { className: 'mt-3 grid gap-1.5 border-t border-[var(--rule)] pt-2.5 text-[0.78rem] leading-snug', attrs: { id: 'model-key', hidden: true } },
     KEY.map(([term, description]) =>
       el('div', { className: 'grid grid-cols-[6.4rem_1fr] gap-2' }, [
         el('dt', { className: 'font-bold', text: term }),
@@ -42,7 +40,7 @@ export function mountLegend(root: HTMLElement, devices: Device[], domain: SpeedD
   const toggle: HTMLButtonElement = el(
     'button',
     {
-      className: 'ctl h-7 min-h-0 px-2 text-[0.74rem]',
+      className: 'ctl h-7 min-h-0 px-2 text-[0.78rem]',
       attrs: { type: 'button', 'aria-expanded': 'false', 'aria-controls': 'model-key' },
       on: {
         click: () => {

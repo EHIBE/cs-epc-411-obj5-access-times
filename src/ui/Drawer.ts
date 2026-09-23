@@ -13,7 +13,7 @@ const TABS: readonly { id: DrawerTab; label: string }[] = [
 const heading = (text: string, section: string): HTMLElement =>
   el('h3', { className: 'mt-7 flex items-baseline gap-2 text-[1.05rem] font-bold first:mt-0 [font-stretch:104%]' }, [
     text,
-    el('span', { className: 't-cite text-[0.74rem] font-medium', text: `Section ${section}` }),
+    el('span', { className: 't-cite text-[0.78rem] font-medium', text: `Section ${section}` }),
   ])
 
 /** The reference drawer: Section G for the Q&A, Section I for sources, and Sections A, B, F and H behind the numbers. */
@@ -68,7 +68,7 @@ export class Drawer {
   private questionsPanel(data: FactSheet): HTMLElement {
     const list = el('div', { className: 'grid gap-1.5' })
     for (const question of data.questions) {
-      const details = el('details', { className: 'qa rounded-lg border border-[var(--rule)]' }, [
+      const details = el('details', { className: 'qa border border-[var(--rule)]' }, [
         el('summary', { className: 'flex items-start gap-3 px-4 py-3 text-[1rem] font-semibold leading-snug' }, [
           el('span', { className: 'num w-8 flex-none text-[var(--ink-3)]', text: `Q${question.id}` }),
           el('span', { className: 'flex-1', text: question.question }),
@@ -80,7 +80,7 @@ export class Drawer {
       list.appendChild(details)
     }
     return el('section', {}, [
-      el('p', { className: 't-cite mb-4 text-[0.82rem]', text: 'Section G of the fact sheet, word for word. Open one when the class asks.' }),
+      el('p', { className: 't-cite mb-4 text-[0.82rem]', text: 'Section G of the fact sheet, word for word.' }),
       list,
     ])
   }
@@ -119,7 +119,7 @@ export class Drawer {
       { className: 'mt-2 grid list-disc gap-2 pl-5 text-[0.92rem] leading-relaxed marker:text-[var(--ink-3)]' },
       notes.assumptions.map((item) => el('li', { className: 'max-w-[80ch]' }, [richText(item)])),
     )
-    const sourceMap = el('div', { className: 'mt-2 overflow-x-auto rounded-lg border border-[var(--rule)]' }, [
+    const sourceMap = el('div', { className: 'mt-2 overflow-x-auto border border-[var(--rule)]' }, [
       el('table', { className: 'data-table' }, [
         el('thead', {}, [el('tr', {}, ['Slide', 'Deck', 'What it says', 'How it supports Objective #5'].map((text) => el('th', { text, attrs: { scope: 'col' } })))]),
         el(
@@ -136,7 +136,7 @@ export class Drawer {
         ),
       ]),
     ])
-    const discrepancies = el('div', { className: 'mt-2 overflow-x-auto rounded-lg border border-[var(--rule)]' }, [
+    const discrepancies = el('div', { className: 'mt-2 overflow-x-auto border border-[var(--rule)]' }, [
       el('table', { className: 'data-table' }, [
         el('thead', {}, [el('tr', {}, ['Slide', 'Slide says', 'Current source says', 'Source'].map((text) => el('th', { text, attrs: { scope: 'col' } })))]),
         el(

@@ -2,8 +2,8 @@ import type { Device, Slide } from '../data/types'
 import type { Annotations } from '../objects/Annotations'
 import type { DepthColumn } from '../objects/DepthColumn'
 import type { DiskPhase } from '../objects/HardDiskSpecimen'
-import type { ParticleField } from '../objects/ParticleField'
 import type { ProbeSweep } from '../objects/ProbeSweep'
+import type { SparkBurst } from '../objects/SparkBurst'
 import type { SpecimenStage } from '../objects/SpecimenStage'
 import type { StrataStack } from '../objects/StrataStack'
 import type { TapePhase } from '../objects/TapeSpecimen'
@@ -31,7 +31,7 @@ export interface DirectorParts {
   rig: CameraRig
   stack: StrataStack
   column: DepthColumn
-  particles: ParticleField
+  sparks: SparkBurst
   sweep: ProbeSweep
   annotations: Annotations
   specimens: SpecimenStage
@@ -42,6 +42,9 @@ export interface DirectorParts {
 }
 
 const REACHED_HOLD = 4.5
+
+/** Close-up shots draw every plate outside the step's focus in line only, so the view reads as a detail of the section. */
+const CLOSE_UPS = new Set<string>(['cpu', 'flash', 'ssdhdd', 'mechanical', 'archive'])
 
 /** Turns app state into stage directions: camera shots, focus, specimens, overlays, the analogy, power and the probe sweep. */
 export class Director {
@@ -118,6 +121,7 @@ export class Director {
     else if (camera === 'fly' && (previousShot !== cue.shot || !rig.isFlying)) rig.fly(SHOTS[cue.shot], reduced ? 0.01 : 1.6)
     rig.setAutoOrbit(Boolean(cue.orbit) && !reduced && !state.selected)
     stack.setFocus(cue.focus)
+    stack.setPresence(cue.specimen || CLOSE_UPS.has(cue.shot) ? cue.focus : null)
     labels.setCallouts(cue.callouts, cue.focus)
     annotations.showMeasure(cue.measure ?? null)
     labels.setMeasure(cue.measure ?? null)
@@ -142,14 +146,14 @@ export class Director {
   }
 
   private applyPointer(state: AppState, previous: AppState | null): void {
-    const { stack, labels, particles, domain, devices } = this.parts
+    const { stack, labels, sparks, domain, devices } = this.parts
     stack.setHovered(state.hovered)
     stack.setSelected(state.selected)
     labels.setPointer(state.hovered, state.selected)
     if (state.selected && state.selected !== previous?.selected) {
       const stratum = stack.get(state.selected)
       const device = devices.find((entry) => entry.id === state.selected)
-      if (stratum && device) particles.burst(stratum, speedColor(speedT(placementLog(device), domain)))
+      if (stratum && device) sparks.burst(stratum, speedColor(speedT(placementLog(device), domain)))
     }
   }
 

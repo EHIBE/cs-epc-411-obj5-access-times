@@ -12,7 +12,7 @@ import {
 } from 'three'
 import { clamp, Spring } from '../utils/math'
 import { yForLog } from '../utils/scale'
-import { COLUMN_X } from './DepthColumn'
+import { COLUMN_HALF, COLUMN_X } from './DepthColumn'
 
 /** A group of hairline segments that fades in and out as one drawing. */
 class LineFigure {
@@ -59,8 +59,8 @@ export class Measure {
 
   constructor(spec: MeasureSpec) {
     this.spec = spec
-    const x = COLUMN_X + 1.35
-    const z = 0.6
+    const x = COLUMN_X + COLUMN_HALF + 1
+    const z = COLUMN_HALF
     const top = yForLog(spec.from)
     const bottom = yForLog(spec.to)
     const segments = [x, top, z, x, bottom, z, x, top, z, x - 0.75, top, z, x, bottom, z, x - 0.75, bottom, z]
@@ -69,7 +69,7 @@ export class Measure {
       segments.push(x, y, z, x - 0.4, y, z)
     }
     this.figure = new LineFigure(segments, 0.95)
-    this.anchor = new Vector3(x + 0.35, (top + bottom) / 2, z)
+    this.anchor = new Vector3(x + 0.2, (top + bottom) / 2, z)
   }
 }
 

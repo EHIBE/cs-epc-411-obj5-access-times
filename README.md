@@ -33,6 +33,7 @@ The talk has 10 slides and 48 steps, sized to the fact sheet's 10-minute plan. E
 | Q | Likely questions (Section G), for Q&A |
 | [ and ] | Faster or slower device while details are open |
 | E | Hide the slide panel to explore the model |
+| N | Presenter notes: planned minutes, lesson links and cues (hidden by default, so the projector shows only what the class needs) |
 | R | Reset the camera to the current step |
 | T | Light or dark theme |
 | F | Full screen |
@@ -41,7 +42,9 @@ The talk has 10 slides and 48 steps, sized to the fact sheet's 10-minute plan. E
 
 With the mouse, drag to rotate, scroll to zoom, right-drag to pan, and click any stratum for its full specification. The bottom rail's segments are sized by each slide's planned minutes. Its clock starts when you leave the title slide, and the marker shows where the talk should be by now.
 
-The light theme is tuned for projectors in lit classrooms; the dark theme suits dim rooms and screen sharing. The URL keeps your place (`#3.2` is slide 3, step 2), so a refresh mid-talk returns to the same step.
+Press N, or the notepad button in the top bar, to show the presenter layer while rehearsing: each slide's planned minutes and lesson link, and the builder's notes about a figure. It is hidden by default.
+
+The light theme is tuned for projectors in lit classrooms; the dark theme is a blueprint-style sheet for dim rooms and screen sharing. The URL keeps your place (`#3.2` is slide 3, step 2), so a refresh mid-talk returns to the same step.
 
 ## Reading the model
 
@@ -54,7 +57,10 @@ The light theme is tuned for projectors in lit classrooms; the dark theme suits 
 | Whisker | The stated range; dashed when it is only an order-of-magnitude band |
 | Ghosted plate | No single published figure (byte-addressable NVM, USB/SD) |
 | Dashed outline | No comparable figure for that dimension |
-| Particles | Circle faster around faster devices |
+| Hatching | Each plate's front edge is hatched by family (CPU, memory, flash, mechanical, archive), as a geological section marks rock types |
+| Line-only plate | In close-ups and mechanism details, plates outside the step's focus are drawn in outline only |
+| Detail mark | A numbered circle on a plate's edge, joined by a leader to the mechanism model drawn beside it (schematic, not to scale) |
+| Survey sheet | The floor's ruling is on the same module as the depth axis: a major line every 3.4 units (one power of ten), minor lines every fifth of that |
 
 ## Where the content comes from
 
@@ -82,8 +88,8 @@ To edit the talk, change the JSON files in `src/data/`. The app validates them a
 ```
 public/index.html      page skeleton and entry point
 src/main.ts            start-up, state wiring, keyboard, render loop
-src/scenes/            renderer, camera rig, lighting, floor, picking, the director and per-step choreography
-src/objects/           strata, depth column, particles, probe sweep, annotations, specimen models
+src/scenes/            renderer and studio environment, camera rig, lighting, survey sheet, picking, the director and per-step choreography
+src/objects/           strata, engraved depth column, click sparks, probe cursor, annotations, specimen models
 src/data/              the fact sheet as validated JSON, plus the loader and types
 src/ui/                deck, figures, detail panel, legend, rail, dialogs, labels, styles
 src/utils/             math and springs, log scale, OKLCH color ramp, formatting, validation, store

@@ -33,6 +33,7 @@ export class QueueSpecimen extends Specimen {
 
   constructor(sataColor: Color, nvmeColor: Color) {
     super()
+    this.dock.set(-8.6, -0.25, 0.2)
     const bed = new Mesh(new RoundedBoxGeometry(20, 0.4, 13.4, 3, 0.24), this.kit.aluminum)
     bed.position.set(1.4, -0.28, 0.2)
     bed.receiveShadow = true

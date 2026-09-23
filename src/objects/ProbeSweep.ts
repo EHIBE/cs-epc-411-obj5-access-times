@@ -1,5 +1,4 @@
 import {
-  BoxGeometry,
   BufferGeometry,
   Float32BufferAttribute,
   Group,
@@ -7,30 +6,32 @@ import {
   LineSegments,
   Mesh,
   MeshBasicMaterial,
-  TorusGeometry,
+  PlaneGeometry,
   Vector3,
   type Color,
 } from 'three'
 import { clamp, Spring } from '../utils/math'
 import { AXIS, yForLog } from '../utils/scale'
-import { COLUMN_X } from './DepthColumn'
+import { COLUMN_HALF, COLUMN_X } from './DepthColumn'
 
 export interface SweepTarget {
   id: string
   log: number
 }
 
-const LEFT = COLUMN_X - 2.2
-const RIGHT = 14
-const DEPTH = 8.5
+const WINDOW_LEFT = COLUMN_X - COLUMN_HALF - 0.4
+const WINDOW_RIGHT = COLUMN_X + COLUMN_HALF + 0.4
+const WINDOW_HALF = 0.8
+const REACH = 15
+const Z = COLUMN_HALF + 0.3
 
-/** A probe band that descends the depth column at a constant log speed, so its readout accelerates through the units. */
+/** The probe is a slide-rule cursor: a glass window riding the depth column with one hairline that runs on across the section, descending at a constant log speed so its readout accelerates through the units. */
 export class ProbeSweep {
   readonly group = new Group()
-  readonly stamp = new Vector3(COLUMN_X - 1.6, AXIS.yTop, 0.6)
-  private readonly plane: Mesh<BoxGeometry, MeshBasicMaterial>
-  private readonly edge: LineSegments<BufferGeometry, LineBasicMaterial>
-  private readonly ring: Mesh<TorusGeometry, MeshBasicMaterial>
+  readonly stamp = new Vector3(COLUMN_X - COLUMN_HALF - 1.2, AXIS.yTop, Z)
+  private readonly frame: LineSegments<BufferGeometry, LineBasicMaterial>
+  private readonly hairline: LineSegments<BufferGeometry, LineBasicMaterial>
+  private readonly glass: Mesh<PlaneGeometry, MeshBasicMaterial>
   private readonly visibility = new Spring(0, 90, 19)
   private targets: (SweepTarget & { fired: boolean })[] = []
   private log: number = AXIS.logTop
@@ -41,31 +42,31 @@ export class ProbeSweep {
   onFinish: () => void = () => undefined
 
   constructor() {
-    this.plane = new Mesh(
-      new BoxGeometry(RIGHT - LEFT, 0.03, DEPTH * 2),
-      new MeshBasicMaterial({ color: 0x26303a, transparent: true, opacity: 0, depthWrite: false }),
+    const frame = [
+      WINDOW_LEFT, -WINDOW_HALF, Z, WINDOW_RIGHT, -WINDOW_HALF, Z,
+      WINDOW_RIGHT, -WINDOW_HALF, Z, WINDOW_RIGHT, WINDOW_HALF, Z,
+      WINDOW_RIGHT, WINDOW_HALF, Z, WINDOW_LEFT, WINDOW_HALF, Z,
+      WINDOW_LEFT, WINDOW_HALF, Z, WINDOW_LEFT, -WINDOW_HALF, Z,
+    ]
+    const frameGeometry = new BufferGeometry()
+    frameGeometry.setAttribute('position', new Float32BufferAttribute(frame, 3))
+    this.frame = new LineSegments(frameGeometry, new LineBasicMaterial({ color: 0x26303a, transparent: true, opacity: 0 }))
+    const hairGeometry = new BufferGeometry()
+    hairGeometry.setAttribute('position', new Float32BufferAttribute([WINDOW_LEFT, 0, Z, REACH, 0, Z], 3))
+    this.hairline = new LineSegments(hairGeometry, new LineBasicMaterial({ color: 0x26303a, transparent: true, opacity: 0 }))
+    this.glass = new Mesh(
+      new PlaneGeometry(WINDOW_RIGHT - WINDOW_LEFT, WINDOW_HALF * 2),
+      new MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, depthWrite: false }),
     )
-    this.plane.position.x = (LEFT + RIGHT) / 2
-    const corners = [LEFT, -DEPTH, RIGHT, -DEPTH, RIGHT, -DEPTH, RIGHT, DEPTH, RIGHT, DEPTH, LEFT, DEPTH, LEFT, DEPTH, LEFT, -DEPTH]
-    const positions: number[] = []
-    for (let i = 0; i < corners.length; i += 2) positions.push(corners[i] as number, 0, corners[i + 1] as number)
-    const geometry = new BufferGeometry()
-    geometry.setAttribute('position', new Float32BufferAttribute(positions, 3))
-    this.edge = new LineSegments(geometry, new LineBasicMaterial({ color: 0x26303a, transparent: true, opacity: 0 }))
-    this.ring = new Mesh(
-      new TorusGeometry(1.05, 0.07, 8, 48),
-      new MeshBasicMaterial({ color: 0x26303a, transparent: true, opacity: 0 }),
-    )
-    this.ring.rotation.x = Math.PI / 2
-    this.ring.position.x = COLUMN_X
-    this.group.add(this.plane, this.edge, this.ring)
+    this.glass.position.set((WINDOW_LEFT + WINDOW_RIGHT) / 2, 0, Z - 0.01)
+    this.group.add(this.glass, this.frame, this.hairline)
     this.group.visible = false
   }
 
-  applyPalette(ink: Color): void {
-    this.plane.material.color.copy(ink)
-    this.edge.material.color.copy(ink)
-    this.ring.material.color.copy(ink)
+  applyPalette(ink: Color, dark: boolean): void {
+    this.frame.material.color.copy(ink)
+    this.hairline.material.color.copy(ink)
+    this.glass.material.color.set(dark ? 0x9fc3e0 : 0xffffff)
   }
 
   get active(): boolean {
@@ -111,13 +112,13 @@ export class ProbeSweep {
     this.visibility.step(dt)
     const v = clamp(this.visibility.value, 0, 1)
     const y = yForLog(this.log)
-    this.plane.position.y = y
-    this.edge.position.y = y
-    this.ring.position.y = y
+    this.frame.position.y = y
+    this.hairline.position.y = y
+    this.glass.position.y = y
     this.stamp.y = y
-    this.plane.material.opacity = 0.075 * v
-    this.edge.material.opacity = 0.7 * v
-    this.ring.material.opacity = v
+    this.frame.material.opacity = 0.95 * v
+    this.hairline.material.opacity = 0.9 * v
+    this.glass.material.opacity = 0.22 * v
     this.group.visible = v > 0.01 || this.running
   }
 }

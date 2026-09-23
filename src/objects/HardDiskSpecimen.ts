@@ -14,7 +14,6 @@ import {
   Vector3,
   type Color,
 } from 'three'
-import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js'
 import { clamp, easeInOutCubic, lerp } from '../utils/math'
 import { createKit, LivePath, Specimen, tintKit, type SpecimenKit } from './Specimen'
 
@@ -52,7 +51,7 @@ export class HardDiskSpecimen extends Specimen {
   private readonly sectorHolder = new Group()
   private readonly sector: Mesh<RingGeometry, MeshBasicMaterial>
   private readonly sectorGeometries = TRACKS.map((radius) => new RingGeometry(radius - 0.17, radius + 0.17, 20, 1, -0.24, 0.48))
-  private readonly labelLift = new Vector3(0, 1.9, 0)
+  private readonly labelLift = new Vector3(0, 0.9, 0)
   private readonly lineInk = new MeshBasicMaterial({ color: 0x26303a, transparent: true, opacity: 0.32, side: DoubleSide })
   private readonly notchInk = new MeshBasicMaterial({ color: 0x26303a })
   private readonly head: Mesh<BoxGeometry, MeshStandardMaterial>
@@ -79,11 +78,7 @@ export class HardDiskSpecimen extends Specimen {
   constructor(accent: Color) {
     super()
     this.accent = accent.clone()
-    const chassis = new Mesh(new RoundedBoxGeometry(13.2, 0.7, 9.8, 3, 0.28), this.kit.aluminum)
-    chassis.position.set(0, -0.36, 0)
-    chassis.castShadow = true
-    chassis.receiveShadow = true
-    const well = new Mesh(new RoundedBoxGeometry(12.3, 0.12, 8.9, 2, 0.2), this.kit.well)
+    const well = new Mesh(new BoxGeometry(12.3, 0.12, 8.9), this.kit.well)
     well.position.set(0, 0.02, 0)
     well.receiveShadow = true
     const platter = new Mesh(new CylinderGeometry(3.95, 3.95, 0.14, 96), this.kit.mirror)
@@ -96,6 +91,7 @@ export class HardDiskSpecimen extends Specimen {
     for (const radius of TRACKS) {
       const ring = new Mesh(new RingGeometry(radius - 0.012, radius + 0.012, 128), this.lineInk)
       ring.rotation.x = -Math.PI / 2
+      ring.userData.noEdges = true
       tracks.add(ring)
     }
     tracks.position.set(CENTER.x, PLATTER_Y + 0.004, CENTER.z)
@@ -105,6 +101,7 @@ export class HardDiskSpecimen extends Specimen {
       new MeshBasicMaterial({ color: this.accent, transparent: true, opacity: 0, side: DoubleSide }),
     )
     this.sector.rotation.x = -Math.PI / 2
+    this.sector.userData.noEdges = true
     this.sectorHolder.add(this.sector)
     const notch = new Mesh(new BoxGeometry(0.5, 0.02, 0.07), this.notchInk)
     notch.position.set(3.6, 0.01, 0)
@@ -136,16 +133,18 @@ export class HardDiskSpecimen extends Specimen {
     this.seekPath = new LivePath(48, this.kit.ink)
     this.rotationArc = new LivePath(64, this.kit.ink)
 
-    this.root.add(chassis, well, platter, hub, tracks, this.spinner, pivot, this.arm, this.bits, this.seekPath.line, this.rotationArc.line)
+    this.root.add(well, platter, hub, tracks, this.spinner, pivot, this.arm, this.bits, this.seekPath.line, this.rotationArc.line)
+    this.detailSheet(this.kit, { minX: -7, maxX: 7, minZ: -5.3, maxZ: 6.9, y: -0.045, titleWidth: 7 })
+    this.inkEdges(this.kit)
 
-    this.label('platter', 'Platter, always spinning', new Vector3(CENTER.x - 2.2, PLATTER_Y + 0.2, CENTER.z - 4.3))
-    this.label('arm', 'Actuator arm', new Vector3(PIVOT.x + 0.9, 0.8, PIVOT.z + 0.4), () => this.mode === 'idle')
+    this.label('platter', 'Platter, always spinning', new Vector3(CENTER.x - 1.4, PLATTER_Y, CENTER.z - 3.6))
+    this.label('arm', 'Actuator arm', new Vector3(PIVOT.x, 0.64, PIVOT.z), () => this.mode === 'idle')
     this.label('head', 'Read/write head', this.headLocal, () => this.mode === 'idle')
     this.label('seek', 'Seek path', this.seekLabel, () => this.phase === 'seek' || (this.mode === 'seek' && this.phase === 'pause'), 'strong')
     this.label('rotate', 'Rotation arc: the wait for the sector', this.arcLabel, () => this.phase === 'rotate', 'strong')
     this.label('transfer', 'Transfer', this.bitsLabel, () => this.phase === 'transfer', 'strong')
     this.label('ready', 'Data ready', this.bitsLabel, () => this.phase === 'ready', 'strong')
-    this.label('scan', 'SCAN: one sweep, requests served in track order', new Vector3(CENTER.x - 2.2, PLATTER_Y + 0.2, CENTER.z + 4.4), () => this.mode === 'scheduling', 'strong')
+    this.label('scan', 'SCAN: one sweep, requests served in track order', new Vector3(CENTER.x, PLATTER_Y, CENTER.z + 3.5), () => this.mode === 'scheduling', 'strong')
   }
 
   applyPalette(ink: Color, dark: boolean): void {
@@ -266,14 +265,13 @@ export class HardDiskSpecimen extends Specimen {
     this.sector.material.opacity = this.sectorVisible * (0.72 + 0.28 * glow)
 
     this.headPosition(this.theta, this.headLocal)
-    this.headLocal.y += 0.45
     this.head.material.emissiveIntensity = 0.2 + glow * 0.8
 
     if (this.phase === 'seek') {
       const current = this.theta
       this.seekPath.arc(PIVOT.x, PIVOT.z, ARM, this.thetaFrom, current, PLATTER_Y + 0.55)
       const mid = (this.thetaFrom + current) / 2
-      this.seekLabel.set(PIVOT.x + Math.cos(mid) * ARM, PLATTER_Y + 0.7, PIVOT.z + Math.sin(mid) * ARM)
+      this.seekLabel.set(PIVOT.x + Math.cos(mid) * ARM, PLATTER_Y + 0.55, PIVOT.z + Math.sin(mid) * ARM)
     } else if (this.phase !== 'pause') {
       this.seekPath.hide()
     }
@@ -283,7 +281,7 @@ export class HardDiskSpecimen extends Specimen {
       const end = start + this.remainingRotation()
       this.rotationArc.arc(CENTER.x, CENTER.z, radius, start, end, PLATTER_Y + 0.08)
       const mid = (start + end) / 2
-      this.arcLabel.set(CENTER.x + Math.cos(mid) * (radius + 0.4), PLATTER_Y + 0.3, CENTER.z + Math.sin(mid) * (radius + 0.4))
+      this.arcLabel.set(CENTER.x + Math.cos(mid) * radius, PLATTER_Y + 0.08, CENTER.z + Math.sin(mid) * radius)
     } else {
       this.rotationArc.hide()
     }

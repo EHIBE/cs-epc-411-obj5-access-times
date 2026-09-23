@@ -30,6 +30,7 @@ export class SpindleTrioSpecimen extends Specimen {
 
   constructor(accents: Color[]) {
     super()
+    this.dock.set(-10.2, -0.3, 0)
     const base = new Mesh(new RoundedBoxGeometry(20.4, 0.5, 7.4, 3, 0.26), this.kit.aluminum)
     base.position.y = -0.3
     base.receiveShadow = true

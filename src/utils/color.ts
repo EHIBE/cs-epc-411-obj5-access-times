@@ -18,9 +18,10 @@ const SPEED_STOPS: readonly OklchStop[] = [
   { t: 0.46, l: 0.76, c: 0.15, h: 145 },
   { t: 0.57, l: 0.82, c: 0.16, h: 118 },
   { t: 0.64, l: 0.8, c: 0.15, h: 88 },
-  { t: 0.71, l: 0.73, c: 0.14, h: 62 },
-  { t: 0.8, l: 0.66, c: 0.12, h: 45 },
-  { t: 1.0, l: 0.54, c: 0.08, h: 30 },
+  { t: 0.71, l: 0.74, c: 0.145, h: 66 },
+  { t: 0.82, l: 0.68, c: 0.13, h: 55 },
+  { t: 0.93, l: 0.62, c: 0.11, h: 48 },
+  { t: 1.0, l: 0.52, c: 0.085, h: 28 },
 ]
 
 const oklabToLinear = ([l, a, b]: Vec3): Vec3 => {
@@ -111,15 +112,6 @@ export function speedColor(t: number): string {
   const b = SPEED_STOPS[upper] as OklchStop
   const local = smoothstep((x - a.t) / (b.t - a.t))
   return oklch(lerp(a.l, b.l, local), lerp(a.c, b.c, local), hueLerp(a.h, b.h, local))
-}
-
-/** A CSS gradient of the ramp, sampled finely so the browser's sRGB interpolation cannot muddy it. */
-export function speedGradientCss(direction = 'to right', samples = 14): string {
-  const stops = Array.from({ length: samples + 1 }, (_, index) => {
-    const t = index / samples
-    return `${speedColor(t)} ${(t * 100).toFixed(1)}%`
-  })
-  return `linear-gradient(${direction}, ${stops.join(', ')})`
 }
 
 /** Mixes two hex colors in OKLab, which keeps dimmed plates from turning muddy. */
